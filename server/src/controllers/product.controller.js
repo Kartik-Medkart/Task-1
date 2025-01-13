@@ -1,4 +1,5 @@
 import { models } from "../db/index.js";
+import { Op } from 'sequelize';
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -197,12 +198,20 @@ export const updateProductImages = asyncHandler(async (req, res) => {
 export const deleteProduct = asyncHandler(async (req, res) => {
   const { WsCode } = req.params;
 
-  const product = await Product.findOne(WsCode);
+  const product = await Product.findOne({ where: { ws_code: WsCode } });
 
   if (!product) {
     res.status(404).json(new ApiResponse(404, null, "Product Not Found"));
     throw new ApiError("Product Not Found");
   }
+
+  const currentImageUrls = product.images;
+
+  await Promise.all(
+    currentImageUrls.map(async (imageUrl) => {
+      await deleteFromCloudinary(imageUrl);
+    })
+  );
 
   await product.destroy();
 
@@ -210,3 +219,33 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, null, "Product Deleted Successfully"));
 });
+
+export const searchProducts = asyncHandler(async (req, res) => {
+    const { product_name, min_price, max_price, tags } = req.query;
+  
+    const whereClause = {};
+  
+    if (product_name) {
+      whereClause.product_name = { [Op.iLike]: `%${product_name}%` };
+    }
+  
+    if (min_price || max_price) {
+        whereClause.price = {};
+        if (min_price) {
+          whereClause.price[Op.gte] = Number(min_price);
+        }
+        if (max_price) {
+          whereClause.price[Op.lte] = Number(max_price);
+        }
+      }
+  
+    if (tags) {
+      whereClause.tags = { [Op.overlap]: tags.split(',') };
+    }
+
+    console.log(whereClause);
+  
+    const products = await Product.findAll({ where: whereClause });
+  
+    res.status(200).json(new ApiResponse(200, products, "Products Retrieved Successfully"));
+  });

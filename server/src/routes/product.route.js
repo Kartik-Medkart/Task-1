@@ -7,6 +7,7 @@ import {
   getProductByWsCode,
   updateProductImage,
   updateProductImages,
+  searchProducts,
 } from "../controllers/product.controller.js";
 import multer from "multer";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -43,6 +44,7 @@ router.post(
   createProduct
 );
 router.get("/", getAllProducts);
+router.get("/search", searchProducts);
 
 router.get("/:WsCode", getProductByWsCode);
 
