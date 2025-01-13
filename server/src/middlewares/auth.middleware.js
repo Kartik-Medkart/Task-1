@@ -3,10 +3,11 @@ import { models } from "../db/index.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const verifyJWT = async (req, res, next) => {
+
   const token =
-    req.cookies.token || req.headers.authorization.startsWith("Bearer")
-      ? req.headers.authorization.split(" ")[1]
-      : null;
+    req?.cookies?.token || (req.headers?.authorization?.startsWith("Bearer")
+      ? req?.headers?.authorization?.split(" ")[1]
+      : null);
 
   if (!token) {
     res.status(401).json({ message: "Unauthorized" });

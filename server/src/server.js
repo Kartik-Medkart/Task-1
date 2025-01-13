@@ -30,11 +30,7 @@ sequelize.authenticate()
   });
 
 // Sync models with the database
-sequelize.sync(
-    {
-        force: true
-    }
-)
+sequelize.sync()
   .then(() => {
     console.log('Database & tables created! \n\n\n\n');
   })

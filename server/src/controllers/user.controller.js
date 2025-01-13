@@ -7,7 +7,17 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const { User } = models;
 
+const validateAndTrimEmail = (email) => {
+  const trimmedEmail = email.trim();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(trimmedEmail)) {
+    throw new ApiError(400, "Invalid email format");
+  }
+  return trimmedEmail;
+};
+
 export const createUser = asyncHandler(async (req, res) => {
+  console.log("Create User Controller");
   const { username, firstName, lastName, email, password, role } = req.body;
 
   if (!username || !email || !password) {
@@ -17,7 +27,12 @@ export const createUser = asyncHandler(async (req, res) => {
     throw new Error(400, "Username, email and password are required");
   }
 
-  const user = await User.findOne({ where: { email } });
+  const verifiedEmail = validateAndTrimEmail(email);
+  console.log(verifiedEmail);
+
+  const user = await User.findOne({ where: { email : verifiedEmail } });
+
+  console.log(user);
 
   if (user) {
     res
@@ -43,17 +58,22 @@ export const createUser = asyncHandler(async (req, res) => {
 });
 
 export const loginUser = asyncHandler(async (req, res) => {
+  console.log("Login User Controller");
   const { email, password } = req.body;
 
-  if (!email || !password) {
+  const verifiedEmail = validateAndTrimEmail(email);
+
+  if(email && !verifiedEmail){
+    res.status(400).json(new ApiError(400, "Invalid email format"));
+    throw new Error(400, "Invalid email format");
+  }
+
+  if (!verifiedEmail || !password) {
     res.status(400).json(new ApiError(400, "Email and Password are required"));
     throw new Error(400, "Email and password are required");
   }
 
-  console.log(req.body);
-
-  const user = await User.findOne({ where: { email } });
-  console.log(user);
+  const user = await User.findOne({ where: { email : verifiedEmail } });
 
   if (!user) {
     res.status(401).json(new ApiError(401, "user Not Found"));
@@ -65,6 +85,8 @@ export const loginUser = asyncHandler(async (req, res) => {
     throw new Error(401, "Invalid email or password");
   }
 
+  console.log(process.env.JWT_SECRET);
+
   const token = jwt.sign(
     { id: user.user_id, role: user.role },
     process.env.JWT_SECRET,
@@ -73,7 +95,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   res
     .status(200)
-    .setCookie("token", token, {
+    .cookie("token", token, {
       httpOnly: true,
       sameSite: "None",
       secure: true,
@@ -88,6 +110,25 @@ export const logoutUser = asyncHandler(async (req, res) => {
     .status(200)
     .clearCookie("token")
     .json(new ApiResponse(200, {}, "Logout Successful"));
+});
+
+export const updateToken = asyncHandler(async (req, res) => {
+  const user = await User.findByPk(req.user.user_id);
+
+  const token = jwt.sign(
+    { id: user.user_id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+
+  res
+    .status(200)
+    .setCookie("token", token, {
+      httpOnly: true,
+      sameSite: "None",
+      secure: true,
+    })
+    .json(new ApiResponse(200, { token, user }, "Token Updated Successfully"));
 });
 
 export const getUserProfile = asyncHandler(async (req, res) => {
