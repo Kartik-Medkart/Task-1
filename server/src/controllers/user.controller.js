@@ -11,7 +11,7 @@ const validateAndTrimEmail = (email) => {
   const trimmedEmail = email.trim();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(trimmedEmail)) {
-    throw new ApiError(400, "Invalid email format");
+    return null;
   }
   return trimmedEmail;
 };
@@ -23,22 +23,22 @@ export const createUser = asyncHandler(async (req, res) => {
   if (!username || !email || !password) {
     res
       .status(400)
-      .json(new ApiError(400, "Username, email and password are required"));
-    throw new Error(400, "Username, email and password are required");
+      .json(new ApiResponse(400, null, "Username, email and password are required"));
+    throw new ApiError(400, "Username, email and password are required");
   }
 
-  const verifiedEmail = validateAndTrimEmail(email);
-  console.log(verifiedEmail);
+  const validatedEmail = validateAndTrimEmail(email);
+  console.log(validatedEmail);
 
-  const user = await User.findOne({ where: { email : verifiedEmail } });
+  const user = await User.findOne({ where: { email : validatedEmail } });
 
   console.log(user);
 
   if (user) {
     res
       .status(400)
-      .json(new ApiError(400, "User with this email already exists"));
-    throw new Error(400, "User with this email already exists");
+      .json(new ApiResponse(400,null, "User with this email already exists"));
+    throw new ApiError(400, "User with this email already exists");
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -61,28 +61,28 @@ export const loginUser = asyncHandler(async (req, res) => {
   console.log("Login User Controller");
   const { email, password } = req.body;
 
-  const verifiedEmail = validateAndTrimEmail(email);
+  const validatedEmail = validateAndTrimEmail(email);
 
-  if(email && !verifiedEmail){
-    res.status(400).json(new ApiError(400, "Invalid email format"));
-    throw new Error(400, "Invalid email format");
+  if(email && !validatedEmail){
+    res.status(400).json(new ApiResponse(400,null, "Invalid email format"));
+    throw new ApiError(400, "Invalid email format");
   }
 
-  if (!verifiedEmail || !password) {
-    res.status(400).json(new ApiError(400, "Email and Password are required"));
-    throw new Error(400, "Email and password are required");
+  if (!validatedEmail || !password) {
+    res.status(400).json(new ApiResponse(400,null, "Email and Password are required"));
+    throw new ApiError(400, "Email and password are required");
   }
 
-  const user = await User.findOne({ where: { email : verifiedEmail } });
+  const user = await User.findOne({ where: { email : validatedEmail } });
 
   if (!user) {
-    res.status(401).json(new ApiError(401, "user Not Found"));
-    throw new Error(401, "user Not Found");
+    res.status(401).json(new ApiResponse(401,null, "user Not Found"));
+    throw new ApiError(401, "user Not Found");
   }
 
   if(!(await bcrypt.compare(password, user.password))) {
-    res.status(401).json(new ApiError(401, "Invalid email or password"));
-    throw new Error(401, "Invalid email or password");
+    res.status(401).json(new ApiResponse(401,null, "Invalid email or password"));
+    throw new ApiError(401, "Invalid email or password");
   }
 
   console.log(process.env.JWT_SECRET);
@@ -103,13 +103,55 @@ export const loginUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { token, user }, "Login Successful"));
 });
 
-
 export const logoutUser = asyncHandler(async (req, res) => {
 
   res
     .status(200)
     .clearCookie("token")
     .json(new ApiResponse(200, {}, "Logout Successful"));
+});
+
+export const updateUser = asyncHandler(async (req, res) => {
+  const { username, firstName, lastName, email, role } = req.body;
+
+  const user = await User.findByPk(req.user.user_id);
+
+  if (!user) {
+    res.status(404).json(new ApiResponse(404,null, "User Not Found"));
+    throw new ApiError(404, "User Not Found");
+  }
+
+  user.firstName = firstName || user.firstName;
+  user.lastName = lastName || user.lastName;
+
+  await user.save();
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, user, "User Updated Successfully"));
+});
+
+export const updatePassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  const user = await User.findByPk(req.user.user_id);
+  if (!user) {
+    res.status(404).json(new ApiResponse(404,null, "User Not Found"));
+    throw new ApiError(404, "User Not Found");
+  }
+
+  if(!(await bcrypt.compare(oldPassword, user.password))) {
+    res.status(401).json(new ApiResponse(401,null, "Invalid Password"));
+    throw new ApiError(401, "Invalid Password");
+  }
+
+  user.password = await bcrypt.hash(newPassword, 10);
+  await user.save();
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, user, "Password Updated Successfully"));
+
 });
 
 export const updateToken = asyncHandler(async (req, res) => {

@@ -38,15 +38,24 @@ export default (sequelize, Sequelize) => {
       type: Sequelize.ARRAY(Sequelize.STRING),
       allowNull: true,
       validate: {
-        is: /\.(png|jpeg|webp)$/i 
+        isValidImageArray(value) {
+          if (!Array.isArray(value)) {
+            throw new Error('Images must be an array');
+          }
+          value.forEach(image => {
+            if (!/\.(jpg|png|jpeg|webp)$/i.test(image)) {
+              throw new Error('Each image must be a .png, .jpeg, or .webp file');
+            }
+          });
+        }
       }
     },
     tags: {
       type: Sequelize.ARRAY(Sequelize.STRING),
       allowNull: true,
-      validate: {
-        is: /^[a-zA-Z\s]*$/ 
-      }
+      // validate: {
+      //   is: /^[a-zA-Z\s]*$/ 
+      // }
     }
   },
   {

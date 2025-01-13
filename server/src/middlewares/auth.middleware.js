@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import { models } from "../db/index.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 export const verifyJWT = async (req, res, next) => {
 
@@ -10,26 +12,25 @@ export const verifyJWT = async (req, res, next) => {
       : null);
 
   if (!token) {
-    res.status(401).json({ message: "Unauthorized" });
-    throw new Error("Unauthorized");
+    res.status(401).json(new ApiResponse(401, null,"Unauthorized"));
+    throw new ApiError("Unauthorized");
   }
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const user = await models.User.findByPk(decoded.id);
 
   if (!user) {
     res.status(401).json({ message: "Unauthorized" });
-    throw new Error("Unauthorized");
+    throw new ApiError("Unauthorized");
   }
 
-  req.user = user;
+  req.user = user.toJSON();
   next();
 };
 
 export const restrict = (roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      res.status(403).json({ message: "Forbidden" });
-      throw new Error("Forbidden");
+      return res.status(403).json(new ApiResponse(403, null, "Forbidden"));
     }
     next();
   };

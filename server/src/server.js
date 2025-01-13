@@ -8,8 +8,6 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 const app = express();
 
-console.log(process.env.POSTGRES_USERNAME)
-
 app.use(cors({
     credentials: true
 }))
@@ -45,7 +43,9 @@ app.get( ('/') ,(req,res)=> {
 })
 
 import userRouter from './routes/user.route.js'
+import productRouter from './routes/product.route.js'
 app.use('/api/v1/user', userRouter);
+app.use('/api/v1/product', productRouter);
 
 app.listen(5000, ()=> {
     console.log("Server is running On PORT: 5000");
