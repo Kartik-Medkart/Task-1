@@ -28,7 +28,9 @@ sequelize.authenticate()
   });
 
 // Sync models with the database
-sequelize.sync()
+sequelize.sync({
+  // force: true
+})
   .then(() => {
     console.log('Database & tables created! \n\n\n\n');
   })
@@ -44,8 +46,14 @@ app.get( ('/') ,(req,res)=> {
 
 import userRouter from './routes/user.route.js'
 import productRouter from './routes/product.route.js'
+import cartRouter from './routes/cart.route.js'
+import tagRouter from './routes/tag.route.js'
+import orderRouter from './routes/order.route.js'
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/product', productRouter);
+app.use('/api/v1/cart', cartRouter);
+app.use('/api/v1/tag', tagRouter);
+app.use('/api/v1/order', orderRouter);
 
 app.listen(5000, ()=> {
     console.log("Server is running On PORT: 5000");

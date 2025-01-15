@@ -5,6 +5,14 @@ export default (sequelize, Sequelize) => {
         primaryKey: true,
         autoIncrement: true,
       },
+      user_id: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'User',
+          key: 'user_id',
+        },
+        onDelete: 'CASCADE',
+      },
       cart_id: {
         type: Sequelize.INTEGER,
         references: {
@@ -14,6 +22,7 @@ export default (sequelize, Sequelize) => {
       },
       order_status: {
         type: Sequelize.ENUM('pending', 'confirmed', 'shipped', 'delivered', 'cancelled'),
+        allowNull: false,
         defaultValue: 'pending',
       },
       total_amount: {
@@ -21,13 +30,24 @@ export default (sequelize, Sequelize) => {
         allowNull: false,
       },
       delivery_address: Sequelize.STRING,
-      shipping_date: Sequelize.DATE,
-      delivered_date: Sequelize.DATE,
+      shipping_date: {
+        type : Sequelize.DATE,
+        defaultValue: Sequelize.NOW
+      },
+      delivered_date: {
+        type: Sequelize.DATE,
+        defaultValue: () => {
+          const date = new Date();
+          date.setDate(date.getDate() + 5); // Add 5 days to the current date
+          return date;
+        },
+      },
     },
     {
       tableName: "Order",
       timestamps: false, 
     });
+
     return Order;
   };
   

@@ -27,15 +27,11 @@ export default (sequelize, Sequelize) => {
       },
       cart_id: {
         type: Sequelize.INTEGER,
-        allowNull: true,
         references: {
           model: 'Cart',
           key: 'cart_id',
         },
-      },
-      orders: {
-        type: Sequelize.ARRAY(Sequelize.INTEGER),
-        defaultValue: [],
+        onDelete: 'CASCADE',
       },
     },
     {

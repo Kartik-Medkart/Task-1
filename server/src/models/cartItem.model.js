@@ -1,5 +1,5 @@
 export default (sequelize, Sequelize) => {
-    const { DataTypes } = Sequelize;
+  const { DataTypes } = Sequelize;
   const CartItem = sequelize.define(
     "CartItem",
     {
@@ -12,7 +12,7 @@ export default (sequelize, Sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: "Cart", 
+          model: "Cart",
           key: "cart_id",
         },
         onDelete: "CASCADE",
@@ -21,25 +21,33 @@ export default (sequelize, Sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: "Product", 
+          model: "Product",
           key: "product_id",
         },
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      price: {
+        type: DataTypes.DECIMAL,
+        allowNull: false,
+      },
+      image: {
+        type: DataTypes.STRING,
+        allowNull: false,
       },
       quantity: {
         type: DataTypes.INTEGER,
         allowNull: false,
         validate: {
-          min: 1, 
+          min: 1,
         },
-      },
-      added_at: {
-        type: DataTypes.DATE,
-        defaultValue: Sequelize.NOW,
       },
     },
     {
       tableName: "CartItem",
-      timestamps: false, 
+      timestamps: false,
     }
   );
 

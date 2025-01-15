@@ -5,25 +5,30 @@ export default (sequelize, Sequelize) => {
         primaryKey: true,
         autoIncrement: true,
       },
-      cart_items: {
-        type: Sequelize.ARRAY({
-          type: Sequelize.INTEGER,
-          references: {
-            model: 'CartItem',
-            key: 'cart_item_id',
-          },
-        }),
-        defaultValue: [],
+      user_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'User',
+          key: 'user_id',
+        },
+        onDelete: 'CASCADE',
       },
       amount: {
         type: Sequelize.DECIMAL,
         allowNull: false,
+        defaultValue: 0.00,
+        get() {
+          const value = this.getDataValue('amount');
+          return parseFloat(value); // Convert the string to a number
+        },
       },
     },
     {
       tableName: "Cart",
       timestamps: false, 
     });
+
     return Cart;
   };
   

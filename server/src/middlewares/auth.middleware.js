@@ -4,7 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
-export const verifyJWT = async (req, res, next) => {
+export const verifyJWT = asyncHandler(async (req, res, next) => {
 
   const token =
     req?.cookies?.token || (req.headers?.authorization?.startsWith("Bearer")
@@ -13,7 +13,7 @@ export const verifyJWT = async (req, res, next) => {
 
   if (!token) {
     res.status(401).json(new ApiResponse(401, null,"Unauthorized"));
-    throw new ApiError("Unauthorized");
+    throw new ApiError(401, "Unauthorized");
   }
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const user = await models.User.findByPk(decoded.id);
@@ -25,7 +25,7 @@ export const verifyJWT = async (req, res, next) => {
 
   req.user = user.toJSON();
   next();
-};
+});
 
 export const restrict = (roles) => {
   return (req, res, next) => {
