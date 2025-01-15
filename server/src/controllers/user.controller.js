@@ -21,38 +21,55 @@ export const createUser = asyncHandler(async (req, res) => {
   const { username, firstName, lastName, email, password, role } = req.body;
 
   if (!username || !email || !password) {
-    res
+    return res
       .status(400)
-      .json(new ApiResponse(400, null, "Username, email and password are required"));
-    throw new ApiError(400, "Username, email and password are required");
+      .json(
+        new ApiResponse(400, null, "Username, email and password are required")
+      );
   }
 
   const validatedEmail = validateAndTrimEmail(email);
   console.log(validatedEmail);
 
-  const user = await User.findOne({ where: { email : validatedEmail } });
+  let user = await User.findOne({ where: { username } });
+  if (user) {
+    return res
+      .status(409)
+      .json(new ApiResponse(409, null, "username already exists"));
+  }
 
-  console.log(user);
+  user = await User.findOne({ where: { email: validatedEmail } });
 
   if (user) {
-    res
-      .status(400)
-      .json(new ApiResponse(400,null, "User with this email already exists"));
-    throw new ApiError(400, "User with this email already exists");
+    return res
+      .status(409)
+      .json(new ApiResponse(409, null, "email already exists"));
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const newUser = await User.create({
-    username,
-    email,
-    password: passwordHash,
-    firstName,
-    lastName,
-    role,
-  });
+  const newUser = await User.create(
+    {
+      username,
+      email,
+      password: passwordHash,
+      firstName,
+      lastName,
+      role,
+    },
+    {
+      fields: [
+        "username",
+        "email",
+        "password",
+        "firstName",
+        "lastName",
+        "role",
+      ],
+    }
+  );
 
-  res
+  return res
     .status(201)
     .json(new ApiResponse(201, newUser, "User Created Successfully"));
 });
@@ -63,29 +80,36 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   const validatedEmail = validateAndTrimEmail(email);
 
-  if(email && !validatedEmail){
-    res.status(400).json(new ApiResponse(400,null, "Invalid email format"));
+  console.log(email, password);
+
+  if (email && !validatedEmail) {
+    res.status(400).json(new ApiResponse(400, null, "Invalid email format"));
     throw new ApiError(400, "Invalid email format");
   }
 
   if (!validatedEmail || !password) {
-    res.status(400).json(new ApiResponse(400,null, "Email and Password are required"));
+    res
+      .status(400)
+      .json(new ApiResponse(400, null, "Email and Password are required"));
     throw new ApiError(400, "Email and password are required");
   }
 
-  const user = await User.findOne({ where: { email : validatedEmail } });
+  const user = await User.findOne({
+    where: { email: validatedEmail }},{
+    attributes: { exclude: ["password"] },
+  });
 
   if (!user) {
-    res.status(401).json(new ApiResponse(401,null, "user Not Found"));
+    res.status(401).json(new ApiResponse(401, null, "user Not Found"));
     throw new ApiError(401, "user Not Found");
   }
 
-  if(!(await bcrypt.compare(password, user.password))) {
-    res.status(401).json(new ApiResponse(401,null, "Invalid email or password"));
+  if (!(await bcrypt.compare(password, user.password))) {
+    res
+      .status(401)
+      .json(new ApiResponse(401, null, "Invalid email or password"));
     throw new ApiError(401, "Invalid email or password");
   }
-
-  console.log(process.env.JWT_SECRET);
 
   const token = jwt.sign(
     { id: user.user_id, role: user.role },
@@ -104,7 +128,6 @@ export const loginUser = asyncHandler(async (req, res) => {
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
-
   res
     .status(200)
     .clearCookie("token")
@@ -112,12 +135,13 @@ export const logoutUser = asyncHandler(async (req, res) => {
 });
 
 export const updateUser = asyncHandler(async (req, res) => {
-  const { username, firstName, lastName, email, role } = req.body;
+  const { firstName, lastName } = req.body;
 
-  const user = await User.findByPk(req.user.user_id);
-
+  const user = await User.findByPk(req.user.user_id, {
+    attributes: { exclude: ["password"] },
+  });
   if (!user) {
-    res.status(404).json(new ApiResponse(404,null, "User Not Found"));
+    res.status(404).json(new ApiResponse(404, null, "User Not Found"));
     throw new ApiError(404, "User Not Found");
   }
 
@@ -126,22 +150,22 @@ export const updateUser = asyncHandler(async (req, res) => {
 
   await user.save();
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, user, "User Updated Successfully"));
+  res.status(200).json(new ApiResponse(200, user, "User Updated Successfully"));
 });
 
 export const updatePassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
-  const user = await User.findByPk(req.user.user_id);
+  const user = await User.findByPk(req.user.user_id, {
+    attributes: { exclude: ["password"] },
+  });
   if (!user) {
-    res.status(404).json(new ApiResponse(404,null, "User Not Found"));
+    res.status(404).json(new ApiResponse(404, null, "User Not Found"));
     throw new ApiError(404, "User Not Found");
   }
 
-  if(!(await bcrypt.compare(oldPassword, user.password))) {
-    res.status(401).json(new ApiResponse(401,null, "Invalid Password"));
+  if (!(await bcrypt.compare(oldPassword, user.password))) {
+    res.status(401).json(new ApiResponse(401, null, "Invalid Password"));
     throw new ApiError(401, "Invalid Password");
   }
 
@@ -151,11 +175,12 @@ export const updatePassword = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(new ApiResponse(200, user, "Password Updated Successfully"));
-
 });
 
 export const updateToken = asyncHandler(async (req, res) => {
-  const user = await User.findByPk(req.user.user_id);
+  const user = await User.findByPk(req.user.user_id, {
+    attributes: { exclude: ["password"] },
+  });
 
   const token = jwt.sign(
     { id: user.user_id, role: user.role },
@@ -174,10 +199,7 @@ export const updateToken = asyncHandler(async (req, res) => {
 });
 
 export const getUserProfile = asyncHandler(async (req, res) => {
-    
-    const user = await User.findByPk(req.user.user_id, {
-        attributes: { exclude: ["password"] },
-    });
-    
-    res.status(200).json(new ApiResponse(200, user, "User Profile"));
+  // const user = await User.findByPk(req.user.user_id).select("-password");
+
+  return res.status(200).json(new ApiResponse(200, req.user, "User Profile"));
 });

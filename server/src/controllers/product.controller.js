@@ -104,6 +104,24 @@ export const getAllProducts = asyncHandler(async (req, res) => {
     offset: Number(offset),
   });
 
+  // console.log()
+
+  // const productsWithImages = await Promise.all((
+  //   products.rows.map(async (product) => {
+  //     const image = await ProductImages.findOne({
+  //       where: { product_id: product.product_id },
+  //     });
+
+  //     // const images = Product_Images.map((image) => {
+  //     //   return {id : image.image_id,url : image.url}
+  //     // }
+  //     // );
+  //     product = product.toJSON();
+  //     product.image = image.url;
+  //     return product;
+  //   })
+  // ));
+
   const totalPages = Math.ceil(products.count / limit);
 
   res.status(200).json(

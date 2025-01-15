@@ -16,7 +16,9 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     throw new ApiError(401, "Unauthorized");
   }
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  const user = await models.User.findByPk(decoded.id);
+  const user = await models.User.findByPk(decoded.id,{
+    attributes: { exclude: ['password'] },
+  });
 
   if (!user) {
     res.status(401).json({ message: "Unauthorized" });
