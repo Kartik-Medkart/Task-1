@@ -9,6 +9,7 @@ const Products = () => {
 //   const [sort, setSort] = useState("price-asc");
 //   const [category, setCategory] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const [tags, setTags] = useState([]);
   const { addToCart } = useCart();
   const itemsPerPage = 5;
@@ -21,6 +22,7 @@ const Products = () => {
         const response = await getProducts(currentPage, limit);
         const { data } = response.data;
         console.log("Products: ", data.products);
+        setTotalPages(data.totalPages);
         setProducts(data.products);
       } catch (error) {
         console.error("Error fetching products: ", error);
@@ -34,7 +36,6 @@ const Products = () => {
     console.log(product);
   };
 
-  const totalPages = Math.ceil(products.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = products.slice(indexOfFirstItem, indexOfLastItem);
