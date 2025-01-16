@@ -35,7 +35,15 @@ export default (sequelize, Sequelize) => {
         validate: {
           min: 1,
         },
-      }
+      },
+      category_id: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: "Category",
+          key: "category_id",
+        },
+        onDelete: "CASCADE",
+      },
     },
     {
       tableName: "Product",

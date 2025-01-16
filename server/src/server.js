@@ -50,11 +50,14 @@ import productRouter from './routes/product.route.js'
 import cartRouter from './routes/cart.route.js'
 import tagRouter from './routes/tag.route.js'
 import orderRouter from './routes/order.route.js'
+import categoryRouter from './routes/category.route.js'
+
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/product', productRouter);
 app.use('/api/v1/cart', cartRouter);
 app.use('/api/v1/tag', tagRouter);
 app.use('/api/v1/order', orderRouter);
+app.use('/api/v1/category', categoryRouter);
 
 app.listen(5000, ()=> {
     console.log("Server is running On PORT: 5000");

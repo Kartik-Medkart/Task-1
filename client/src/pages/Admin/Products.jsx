@@ -2,18 +2,24 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { getProducts, searchProducts } from "../../services/api";
 import { useCart } from "../../contexts/CartContext";
+import ProductForm from "../../components/ProductForm";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
-//   const [search, setSearch] = useState("");
-//   const [sort, setSort] = useState("price-asc");
-//   const [category, setCategory] = useState("");
+  //   const [search, setSearch] = useState("");
+  //   const [sort, setSort] = useState("price-asc");
+  //   const [category, setCategory] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [tags, setTags] = useState([]);
+  const [showForm, setShowForm] = useState(false);
   const { addToCart } = useCart();
   const itemsPerPage = 5;
-  
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  // const currentItems = products.slice(indexOfFirstItem, indexOfLastItem);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -24,6 +30,7 @@ const Products = () => {
         console.log("Products: ", data.products);
         setTotalPages(data.totalPages);
         setProducts(data.products);
+        setTotalProducts(data.totalItems);
       } catch (error) {
         console.error("Error fetching products: ", error);
       }
@@ -36,12 +43,8 @@ const Products = () => {
     console.log(product);
   };
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = products.slice(indexOfFirstItem, indexOfLastItem);
-
   const PaginationComponent = () => (
-    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 mt-5 sm:px-6">
       <div className="flex justify-between flex-1 sm:hidden">
         <button
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -66,10 +69,9 @@ const Products = () => {
             Showing <span className="font-medium">{indexOfFirstItem + 1}</span>{" "}
             to{" "}
             <span className="font-medium">
-              {Math.min(indexOfLastItem, products.length)}
+              {Math.min(indexOfLastItem, totalProducts)}
             </span>{" "}
-            of <span className="font-medium">{products.length}</span>{" "}
-            results
+            of <span className="font-medium">{totalProducts}</span> results
           </p>
         </div>
         <div>
@@ -112,16 +114,21 @@ const Products = () => {
 
   return (
     <div className="bg-white">
-      <div className="mx-auto max-w-2xl px-4 py-2 sm:px-6 sm:py-4 lg:max-w-7xl lg:px-8">
-        <h2 className="sr-only">Products</h2>
-
+      <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+        <div className="mb-3 flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Products</h2>
+          <button
+            className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-800"
+            onClick={() => setShowForm(true)}
+          >
+            Add Product
+          </button>
+        </div>
+        {showForm && <ProductForm onClose={() => setShowForm(false)} />}
         <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
-          {currentItems?.length > 0 &&
-            currentItems.map((product) => (
-              <div
-                key={product.product_id}
-                className="group"
-              >
+          {products?.length > 0 &&
+            products.map((product) => (
+              <div key={product.product_id} className="group">
                 <img
                   alt={product.product_name}
                   src={product.image.url}
@@ -143,7 +150,7 @@ const Products = () => {
               </div>
             ))}
         </div>
-        <PaginationComponent/>
+        <PaginationComponent />
       </div>
     </div>
   );

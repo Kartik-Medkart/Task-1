@@ -105,7 +105,7 @@ const CartPage = () => {
               <p className="text-gray-600 text-lg">Your cart is empty</p>
             </div>
           ) : (
-            cartItems.map(item => <CartItem key={item.cart_item_id} id={item.cart_item_id} item={item} />)
+            cartItems.map((item, index) => <CartItem key={index} id={item.cart_item_id} item={item} />)
           )}
         </div>
 

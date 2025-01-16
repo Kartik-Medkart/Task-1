@@ -22,7 +22,7 @@ const LoginPage = () => {
     try {
       const response = await loginUserAPI(values);
       const {data} = response.data;
-      login(data.user);
+      setLocalUser(data.user);
       navigate(from, { replace: true });
     } catch (error) {
       console.error(error);

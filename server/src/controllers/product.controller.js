@@ -8,12 +8,13 @@ import {
   deleteFromCloudinary,
 } from "../utils/cloudinary.js";
 
-const { Product, ProductImages, ProductTags, Tag } = models;
+
+const { Product, ProductTags, Tag, Category } = models;
 
 // Create a new product
 export const createProduct = asyncHandler(async (req, res) => {
   console.log("Create Product Controller");
-  const { product_name, ws_code, price, package_size } = req.body;
+  const { product_name, ws_code, price, package_size, category_id } = req.body;
   let { tags } = req.body;
 
   let message = "Product Created Successfully";
@@ -33,6 +34,16 @@ export const createProduct = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Product with this WS Code already exists");
   }
 
+  const category = await Category.findByPk(category_id);
+
+  if(!category){
+    res
+      .status(400)
+      .json(
+        new ApiResponse(400, null, "Category with this ID does not exist")
+      );
+  }
+
   let newProduct;
   try {
     newProduct = await Product.create({
@@ -40,6 +51,7 @@ export const createProduct = asyncHandler(async (req, res) => {
       ws_code,
       price,
       package_size,
+      category_id
     });
   } catch (error) {
     res
@@ -63,7 +75,7 @@ export const createProduct = asyncHandler(async (req, res) => {
         const imageName = file.originalname;
         const image = await uploadOnCloudinary(file.path);
         if(image){
-          return ProductImages.create({
+          retur.create({
             product_id: newProduct.product_id,
             url: image.secure_url,
           });
@@ -166,7 +178,7 @@ export const getAllProducts = asyncHandler(async (req, res) => {
     let image = await ProductImages.findOne({
       where: { product_id: product.product_id },
     });
-    image = { id: image.image_id, url: image.url };
+    image = { id: image?.image_id || "", url: image?.url || "" };
     product.image = image;
   }
 

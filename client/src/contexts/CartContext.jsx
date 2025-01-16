@@ -87,7 +87,7 @@ export const CartProvider = ({ children }) => {
       const { data, success, message } = response.data;
       if (success) {
         toast.success(message);
-        dispatch({ type: "ADD_TO_CART", payload: { item: data } });
+        dispatch({ type: "ADD_TO_CART", payload: { item: data.item } });
       } else {
         toast.error(message);
       }

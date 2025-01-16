@@ -34,6 +34,9 @@ export const getOrdersAPI = () => api.get("/order");
 
 export const createProduct = (data) => api.post("/product", data);
 
+export const getTagsAPI = () => api.get("/tag");
+export const createTagAPI = (tag) => api.post("/tag", tag);
+
 export const getAllOrdersAPI = (page = 1, limit = 10) => api.get(`/order/all?page=${page}&limit=${limit}`);
 export const updateOrderStatusAPI = (id, status) =>
   api.put(`/orders/${id}`, { status });

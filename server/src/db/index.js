@@ -12,6 +12,7 @@ import CartItem from "../models/cartItem.model.js";
 import ProductImages from "../models/productImages.model.js";
 import Tag from "../models/tag.model.js";
 import ProductTags from "../models/productTags.model.js";
+import Category from "../models/category.model.js";
 
 console.log(process.env.POSTGRES_USERNAME);
 const config = {
@@ -35,6 +36,7 @@ const models = {
   ProductImages: ProductImages(sequelize, Sequelize),
   Tag: Tag(sequelize, Sequelize),
   ProductTags: ProductTags(sequelize, Sequelize),
+  Category: Category(sequelize, Sequelize),
 };
 
 // Establish relationships (Associations)
@@ -106,4 +108,13 @@ models.Order.hasMany(models.CartItem, {
   as: "items",
 });
 
+models.Product.belongsTo(models.Category, {
+  foreignKey: "category_id",
+  onDelete: "CASCADE",
+});
+
+models.Category.hasMany(models.Product, {
+  foreignKey: "category_id",
+  onDelete: "CASCADE",
+});
 export { sequelize, models };

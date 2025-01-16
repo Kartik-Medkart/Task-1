@@ -17,4 +17,4 @@ export default (sequelize, Sequelize) => {
     });
   
     return Tag;
-  };
+};

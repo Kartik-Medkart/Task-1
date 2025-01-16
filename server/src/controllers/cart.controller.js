@@ -54,7 +54,7 @@ export const addToCart = asyncHandler(async (req, res) => {
         product_id,
         name: product.product_name,
         price: product.price,
-        image: image.url,
+        image: image?.url || "",
         quantity,
     });
 

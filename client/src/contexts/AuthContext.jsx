@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
 
   const navigate = useNavigate();
 
-  const login = (userData) => {
+  const setLocalUser = (userData) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
   };
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
   console.log("role", role);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, role, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, role, setLocalUser, logout }}>
       {children}
     </AuthContext.Provider>
   );
