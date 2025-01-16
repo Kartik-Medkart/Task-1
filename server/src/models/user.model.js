@@ -25,6 +25,13 @@ export default (sequelize, Sequelize) => {
         type: Sequelize.ENUM('admin', 'customer'),
         defaultValue: 'customer',
       },
+      address: Sequelize.STRING,
+      city : Sequelize.STRING,
+      state : Sequelize.STRING,
+      phone: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       cart_id: {
         type: Sequelize.INTEGER,
         references: {

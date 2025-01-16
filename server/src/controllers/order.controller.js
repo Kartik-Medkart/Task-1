@@ -7,7 +7,6 @@ const { Order, Cart, CartItem, User } = models;
 
 export const createOrder = asyncHandler(async (req, res) => {
   const { user_id } = req.user;
-  const { delivery_address } = req.body;
   const cart_id = req.user?.cart_id;
 
   const user = await User.findByPk(user_id);
@@ -16,10 +15,8 @@ export const createOrder = asyncHandler(async (req, res) => {
     return res.status(400).json(new ApiResponse(400, null, "Cart is empty"));
   }
 
-  if (!delivery_address) {
-    return res
-      .status(400)
-      .json(new ApiResponse(400, null, "Delivery address is required"));
+  if(!user.address || !user.city || !user.state){
+    return res.status(400).json(new ApiResponse(400, null, "Please update your address"));
   }
 
   const cart = await Cart.findByPk(cart_id);
@@ -27,7 +24,6 @@ export const createOrder = asyncHandler(async (req, res) => {
   const order = await Order.create({
     user_id,
     cart_id,
-    delivery_address,
     total_amount: cart.amount,
   });
 
@@ -86,6 +82,7 @@ export const getOrdersByUser = asyncHandler(async (req, res) => {
     include: [
       {
         model: Cart,
+        as : "cart",
         attributes: ["cart_id", "amount"],
         include: {
           model: CartItem,
@@ -126,22 +123,30 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10 } = req.query;
     const offset = (page - 1) * limit;
   
-    const { count, rows: orders } = await Order.findAndCountAll({
+    let { count, rows: orders } = await Order.findAndCountAll({
       limit: Number(limit),
       offset: Number(offset),
       include: [
         {
           model: Cart,
+          as : "cart",
           attributes: ["cart_id", "amount"],
+          include: {
+            model: CartItem,
+            as: "items",
+            attributes: ["cart_item_id", "name", "image", "quantity", "price"],
+          },
         },
         {
           model: User,
-          attributes: ["username", "email"],
-        },
+          as: "user",
+          attributes: ["username", "email", "phone", "address", "city", "state"],
+        }
       ],
     });
   
     const totalPages = Math.ceil(count / limit);
+    console.log(count)
   
     res.status(200).json(
       new ApiResponse(

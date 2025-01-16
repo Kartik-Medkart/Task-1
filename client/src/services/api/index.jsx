@@ -8,26 +8,32 @@ const api = axios.create({
 
 // User Api Calls
 
-export const registerUser = (userData) => api.post("/user", userData);
-export const loginUser = (credentials) => api.post("/user/login", credentials);
-export const updateUser = (userData, token) =>
-  api.put("/user/update", userData, {
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: `token=${token}`,
-    },
-  });
-export const logoutUser = (token) =>
-  api.post("/user/logout", null, {
-    headers: {
-      Cookie: `token=${token}`,
-    },
-  });
+export const registerUserAPI = (userData) => api.post("/user", userData);
+export const loginUserAPI = (credentials) => api.post("/user/login", credentials);
+export const updateUserAPI = (userData) =>
+  api.post("/user/update", userData);
+export const logoutUserAPI = (token) =>
+  api.post("/user/logout");
 
 export const getProducts = (page=1,limit=10) => api.get(`/product?page=${page}&limit=${limit}`);
+export const searchProducts = (search) => api.get(`/product/search`, {
+  params: { product_name: search },
+});
+
+export const getCartAPI = () => api.get("/cart");
+export const addToCartAPI = ( product_id ) => api.post("/cart/add", {product_id});
+export const removeFromCartAPI = (cart_item_id) => api.delete(`/cart/remove/${cart_item_id}`);
+export const updateCartAPI = (cart_item_id, quantity) => api.put(`/cart/update`, {cart_item_id, quantity});
+
+
+export const placeOrderAPI = (data) => api.post("/order");
+
+
+export const getOrdersAPI = () => api.get("/order");
+
+
 export const createProduct = (data) => api.post("/product", data);
 
-
-export const getOrders = () => api.get("/orders");
-export const updateOrderStatus = (id, status) =>
+export const getAllOrdersAPI = (page = 1, limit = 10) => api.get(`/order/all?page=${page}&limit=${limit}`);
+export const updateOrderStatusAPI = (id, status) =>
   api.put(`/orders/${id}`, { status });

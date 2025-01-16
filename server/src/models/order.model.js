@@ -29,7 +29,6 @@ export default (sequelize, Sequelize) => {
         type: Sequelize.DECIMAL,
         allowNull: false,
       },
-      delivery_address: Sequelize.STRING,
       shipping_date: {
         type : Sequelize.DATE,
         defaultValue: Sequelize.NOW

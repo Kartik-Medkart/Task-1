@@ -18,9 +18,9 @@ const validateAndTrimEmail = (email) => {
 
 export const createUser = asyncHandler(async (req, res) => {
   console.log("Create User Controller");
-  const { username, firstName, lastName, email, password, role } = req.body;
+  const { username, firstName, lastName, email, password, phone, address, city, state, role } = req.body;
 
-  if (!username || !email || !password) {
+  if (!username || !email || !password || !phone || !firstName || !lastName) {
     return res
       .status(400)
       .json(
@@ -55,6 +55,7 @@ export const createUser = asyncHandler(async (req, res) => {
       password: passwordHash,
       firstName,
       lastName,
+      phone, address, city, state,
       role,
     },
     {
@@ -95,9 +96,9 @@ export const loginUser = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findOne({
-    where: { email: validatedEmail }},{
-    attributes: { exclude: ["password"] },
-  });
+    where: { email: validatedEmail },
+      exclude: ["password"],
+    });
 
   if (!user) {
     res.status(401).json(new ApiResponse(401, null, "user Not Found"));
@@ -135,7 +136,7 @@ export const logoutUser = asyncHandler(async (req, res) => {
 });
 
 export const updateUser = asyncHandler(async (req, res) => {
-  const { firstName, lastName } = req.body;
+  const { firstName, lastName, phone, address, city, state } = req.body;
 
   const user = await User.findByPk(req.user.user_id, {
     attributes: { exclude: ["password"] },
@@ -145,8 +146,16 @@ export const updateUser = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User Not Found");
   }
 
+  if(!firstName || !lastName || !phone || !address || !city || !state){
+    return res.status(400).json(new ApiResponse(400, null, "All fields are required"));
+  }
+
   user.firstName = firstName || user.firstName;
   user.lastName = lastName || user.lastName;
+  user.phone = phone || user.phone;
+  user.address = address || user.address;
+  user.city = city || user.city;
+  user.state = state || user.state;
 
   await user.save();
 

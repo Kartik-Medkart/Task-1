@@ -1,20 +1,18 @@
 import { useEffect, useState } from "react";
-import { getOrdersAPI } from "../services/api";
-import { ClipLoader } from "react-spinners";
+
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { useAuth } from "../contexts/AuthContext";
-import { updateUserAPI } from "../services/api";
+import { useAuth } from "../../contexts/AuthContext";
+import { updateUserAPI } from "../../services/api";
 import { toast } from "react-toastify";
 import { FiTrash2 } from "react-icons/fi";
 import { FaMinus, FaPlus, FaUser, FaBox, FaTimes } from "react-icons/fa";
 
-const CustomerPage = () => {
+import Orders from "./Orders";
+import Products from "./Products";
+
+const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("profile");
-  const [showModal, setShowModal] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(false);
   const {user, logout} = useAuth();
 
   const initialValues = {
@@ -26,102 +24,6 @@ const CustomerPage = () => {
     state: user?.state || "",
     phone: user?.phone || "",
   }
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      setLoading(true);
-      try {
-        const response = await getOrdersAPI();
-        const { data } = response.data;
-        setOrders(data);
-      } catch (error) {
-        console.error("Error fetching orders: ", error.response.data.message);
-      }
-      setLoading(false);
-    };
-    fetchOrders();
-  }, []);
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const OrderModal = ({ order, onClose }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold">
-              Order Details #{order.order_id}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <FaTimes size={24} />
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
-              <div>
-                <p className="text-gray-600">Order Status</p>
-                <p className="font-semibold capitalize">{order.order_status}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Total Amount</p>
-                <p className="font-semibold">${order.total_amount}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Shipping Date</p>
-                <p className="font-semibold">
-                  {formatDate(order.shipping_date)}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-600">Delivery Date</p>
-                <p className="font-semibold">
-                  {formatDate(order.delivered_date)}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Order Items</h3>
-              {order.cart.items.map((item) => (
-                <div
-                  key={item.cart_item_id}
-                  className="flex items-center space-x-4 border-b pb-4"
-                >
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-20 h-20 object-cover rounded-lg"
-                    onError={(e) => {
-                      e.target.src =
-                        "https://images.unsplash.com/photo-1595246140608-21d37b3dc2e8";
-                    }}
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{item.name}</h4>
-                    <p className="text-gray-600">Quantity: {item.quantity}</p>
-                    <p className="text-gray-600">Price: ${item.price}</p>
-                  </div>
-                  <p className="font-semibold">
-                    ${Number(item.price) * item.quantity}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
   const validationSchema = Yup.object().shape({
     firstName: Yup.string().required('First name is required'),
@@ -264,57 +166,7 @@ const CustomerPage = () => {
     </div>
   );
 
-  const OrderContent = () => (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-semibold mb-6">My Orders</h2>
-      <div className="space-y-4">
-        {loading ? (
-          <div className="flex justify-center items-center h-screen">
-            <ClipLoader size={150} color={"#123abc"} loading={loading} />
-          </div>
-        ) : (
-          orders?.length > 0 &&
-          orders.map((order) => (
-            <div
-              key={order.order_id}
-              className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50"
-              onClick={() => {
-                setSelectedOrder(order);
-                setShowModal(true);
-              }}
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-semibold">Order #{order.order_id}</h3>
-                  <p className="text-gray-600">
-                    {formatDate(order.shipping_date)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold">${order.total_amount}</p>
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-sm ${
-                      order.order_status === "confirmed"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {order.order_status}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-        {console.log(orders)}
-        {orders?.length === 0 && (
-          <div className="text-center py-8 bg-white rounded-lg shadow-md">
-            <p className="text-gray-600 text-lg">No orders found</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -372,6 +224,17 @@ const CustomerPage = () => {
             <span>Orders</span>
           </button>
           <button
+            onClick={() => setActiveTab("products")}
+            className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg ${
+              activeTab === "products"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            <FaBox />
+            <span>Products</span>
+          </button>
+          <button
             onClick={() => logout()}
             className={`w-full flex items-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700`}
           >
@@ -382,11 +245,13 @@ const CustomerPage = () => {
 
         {/* Content */}
         <div className="flex-1">
-          {activeTab === "profile" ? <ProfileContent /> : <OrderContent />}
+          {activeTab === "profile" && <ProfileContent />}
+          {activeTab === "orders" && <Orders />}
+          {activeTab === "products" && <Products />}
         </div>
       </div>
 
-      {/* Order Details Modal */}
+      {/* Order Details Modal
       {showModal && selectedOrder && (
         <OrderModal
           order={selectedOrder}
@@ -395,9 +260,9 @@ const CustomerPage = () => {
             setSelectedOrder(null);
           }}
         />
-      )}
+      )} */}
     </div>
   );
 };
 
-export default CustomerPage;
+export default AdminPage;

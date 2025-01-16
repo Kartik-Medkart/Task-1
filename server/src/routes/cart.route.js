@@ -16,9 +16,9 @@ router.get('/', getCart);
 router.post('/add', addToCart);
 
 // Add/Update Item in Cart
-router.post('/update', updateQuantity);
+router.put('/update', updateQuantity);
 
 // Remove Item from Cart
-router.delete('/remove', removeFromCart);
+router.delete('/remove/:cart_item_id', removeFromCart);
 
 export default router;

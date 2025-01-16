@@ -9,6 +9,11 @@ import {
 
 const router = Router();
 
+import { verifyJWT, restrict } from "../middlewares/auth.middleware.js";
+
+router.use(verifyJWT);
+router.use(restrict(["admin"]))
+
 // Route to create a new tag
 router.post("/", createTag);
 

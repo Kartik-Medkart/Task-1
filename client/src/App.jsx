@@ -9,7 +9,7 @@ import {
 import { useAuth } from "./contexts/AuthContext";
 
 import CustomerPage from "./pages/CustomerPage";
-import AdminPage from "./pages/AdminPage";
+import AdminPage from "./pages/Admin/AdminPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpForm from "./pages/SignUpPage";
 import HomePage from "./pages/HomePage";
@@ -36,7 +36,7 @@ const ProtectedRoute = ({ children, role }) => {
 };
 const App = () => {
   return (
-    <Router>
+    <div>
       <Navbar />
       <Routes>
         {/* Login Page */}
@@ -49,7 +49,9 @@ const App = () => {
         <Route
           path="/cart"
           element={
-            <ProtectedRoute role="customer">
+            <ProtectedRoute 
+              // role="customer"
+              >
               <CartPage />
             </ProtectedRoute>
           }
@@ -58,9 +60,11 @@ const App = () => {
         {/* Customer Pages */}
 
         <Route
-          path="/customer"
+          path="/profile"
           element={
-            <ProtectedRoute role="customer">
+            <ProtectedRoute
+              // role="customer"
+            >
               <CustomerPage />
             </ProtectedRoute>
           }
@@ -79,7 +83,7 @@ const App = () => {
         {/* Default to Login */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
-    </Router>
+    </div>
   );
 };
 

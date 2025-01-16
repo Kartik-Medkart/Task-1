@@ -61,19 +61,19 @@ export const addToCart = asyncHandler(async (req, res) => {
     cart.amount += Number(product.price) * quantity;
     await cart.save();
 
-    const newCart = await Cart.findByPk(cart.cart_id, {
-        include: {
-            model: CartItem,
-            as: 'items',
-            attributes: ['cart_item_id','name', 'image', 'quantity', 'price']
-        },
-    });
+    // const newCart = await Cart.findByPk(cart.cart_id, {
+    //     include: {
+    //         model: CartItem,
+    //         as: 'items',
+    //         attributes: ['cart_item_id','name', 'image', 'quantity', 'price']
+    //     },
+    // });
     
-    return res.status(200).json(new ApiResponse(200, newCart, "Product Added to Cart"));
+    return res.status(200).json(new ApiResponse(200, {item : cartItem , amount: cart.amount}, "Product Added to Cart"));
 });
 
 export const updateQuantity = asyncHandler(async (req, res) => {
-    const { cart_item_id, increment } = req.body;
+    const { cart_item_id, quantity } = req.body;
     const user_id = req.user.user_id;
 
     const cartItem = await CartItem.findByPk(cart_item_id);
@@ -100,18 +100,12 @@ export const updateQuantity = asyncHandler(async (req, res) => {
     // Add Functionality to check if product is in stock
     // Add Functionality to verify that product details is changed or not?
 
-    if(increment){
-        cartItem.quantity += 1;
-        cart.amount += parseFloat(cartItem.price);
-    }
-    else{
-        if(cartItem.quantity === 1){
-            res.status(400).json(new ApiResponse(400, null, "Quantity cannot be less than 1"));
-            throw new ApiError(400, "Quantity cannot be less than 1");
-        }
-        cartItem.quantity -= 1;
-        cart.amount -= cartItem.price;
-    }
+    const oldQuantity = cartItem.quantity;
+    const pricePerItem = parseFloat(cartItem.price);
+    const quantityDifference = quantity - oldQuantity;
+
+    cart.amount += quantityDifference * pricePerItem;
+    cartItem.quantity = quantity;
 
     await cartItem.save();
     await cart.save();
@@ -120,7 +114,7 @@ export const updateQuantity = asyncHandler(async (req, res) => {
 });
 
 export const removeFromCart = asyncHandler(async (req, res) => {
-    const { cart_item_id } = req.body;
+    const { cart_item_id } = req.params;
     const user_id = req.user.user_id;
 
     const cartItem = await CartItem.findByPk(cart_item_id);
@@ -159,7 +153,7 @@ export const getCart = asyncHandler(async (req, res) => {
         include: {
             model: CartItem,
             as: 'items',
-            attributes: ['cart_item_id','name', 'image', 'quantity', 'price'],
+            attributes: ['cart_item_id','product_id','name', 'image', 'quantity', 'price'],
             // include: {
             //     model: Product,
             //     as: 'product',

@@ -42,16 +42,18 @@ const models = {
 // User and Order
 models.Order.belongsTo(models.User, {
   foreignKey: "user_id",
+  as: "user",
   onDelete: "CASCADE",
 });
-models.User.hasMany(models.Order, { foreignKey: "user_id" });
+models.User.hasMany(models.Order, { foreignKey: "user_id", as: "orders" });
 
 // Order and Cart
 models.Order.belongsTo(models.Cart, {
   foreignKey: "cart_id",
+  as: "cart",
   onDelete: "CASCADE",
 });
-models.Cart.hasMany(models.Order, { foreignKey: "cart_id" });
+models.Cart.hasOne(models.Order, { foreignKey: "cart_id" });
 
 // Cart and CartItem
 models.CartItem.belongsTo(models.Cart, {

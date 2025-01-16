@@ -1,21 +1,26 @@
-import {useState} from "react";
+import { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { registerUser } from "../services/api/index.jsx"; // Import the registerUser function
+import { registerUserAPI } from "../services/api/index.jsx"; // Import the registerUserAPI function
 
 const SignUpForm = () => {
   const navigate = useNavigate();
 
-//   const [isSubmitting, setSubmitting] = useState(false);
+  //   const [isSubmitting, setSubmitting] = useState(false);
 
   // Validation Schema using Yup
   const validationSchema = Yup.object().shape({
     firstName: Yup.string().required("First name is required"),
     lastName: Yup.string().required("Last name is required"),
     username: Yup.string().required("Username is required"),
-    email: Yup.string().email("Invalid email address").required("Email is required"),
+    email: Yup.string()
+      .email("Invalid email address")
+      .required("Email is required"),
+    phone: Yup.string()
+      .matches(/^[0-9]{10}$/, "Phone number must be exactly 10 digits")
+      .required("Phone number is required"),
     password: Yup.string()
       .min(8, "Password must be at least 8 characters")
       .required("Password is required"),
@@ -24,16 +29,21 @@ const SignUpForm = () => {
   // Handle form submission
   const handleSubmit = async (values, { setSubmitting, setErrors }) => {
     try {
-      const response = await registerUser(values); // Use the registerUser function
+      const response = await registerUserAPI(values); // Use the registerUserAPI function
       console.log(response.data);
       navigate("/login"); // Redirect to login page after successful registration
     } catch (error) {
-    //   console.error(error);
-      if (error.response && error.response.data && error.response.data.message) {
+      //   console.error(error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
         if (error.response.data.message.includes("username already exists")) {
           setErrors({ username: "Username already exists" });
-        } 
-        else if (error.response.data.message.includes("email already exists")) {
+        } else if (
+          error.response.data.message.includes("email already exists")
+        ) {
           setErrors({ email: "User With email already exists" });
         }
       } else {
@@ -45,7 +55,7 @@ const SignUpForm = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
+    <div className="flex justify-center py-6 bg-gray-100">
       <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
         <Formik
@@ -54,6 +64,7 @@ const SignUpForm = () => {
             lastName: "",
             username: "",
             email: "",
+            phone: "",
             password: "",
           }}
           validationSchema={validationSchema}
@@ -63,7 +74,10 @@ const SignUpForm = () => {
             <Form>
               {/* First Name */}
               <div className="mb-4">
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="firstName"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   First Name
                 </label>
                 <Field
@@ -72,12 +86,19 @@ const SignUpForm = () => {
                   placeholder="Enter your first name"
                   className="w-full p-2 border rounded mt-1"
                 />
-                <ErrorMessage name="firstName" component="div" className="text-red-500 text-sm" />
+                <ErrorMessage
+                  name="firstName"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
               </div>
 
               {/* Last Name */}
               <div className="mb-4">
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="lastName"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Last Name
                 </label>
                 <Field
@@ -86,12 +107,19 @@ const SignUpForm = () => {
                   placeholder="Enter your last name"
                   className="w-full p-2 border rounded mt-1"
                 />
-                <ErrorMessage name="lastName" component="div" className="text-red-500 text-sm" />
+                <ErrorMessage
+                  name="lastName"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
               </div>
 
               {/* Username */}
               <div className="mb-4">
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Username
                 </label>
                 <Field
@@ -100,12 +128,19 @@ const SignUpForm = () => {
                   placeholder="Choose a username"
                   className="w-full p-2 border rounded mt-1"
                 />
-                <ErrorMessage name="username" component="div" className="text-red-500 text-sm" />
+                <ErrorMessage
+                  name="username"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
               </div>
 
               {/* Email */}
               <div className="mb-4">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Email
                 </label>
                 <Field
@@ -114,12 +149,39 @@ const SignUpForm = () => {
                   placeholder="Enter your email"
                   className="w-full p-2 border rounded mt-1"
                 />
-                <ErrorMessage name="email" component="div" className="text-red-500 text-sm" />
+                <ErrorMessage
+                  name="email"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Phone Number
+                </label>
+                <Field
+                  name="phone"
+                  type="phone"
+                  placeholder="Enter your phone number"
+                  className="w-full p-2 border rounded mt-1"
+                />
+                <ErrorMessage
+                  name="phone"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
               </div>
 
               {/* Password */}
               <div className="mb-4">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Password
                 </label>
                 <Field
@@ -128,12 +190,18 @@ const SignUpForm = () => {
                   placeholder="Enter your password"
                   className="w-full p-2 border rounded mt-1"
                 />
-                <ErrorMessage name="password" component="div" className="text-red-500 text-sm" />
+                <ErrorMessage
+                  name="password"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
               </div>
 
               {/* API Error */}
               {errors.apiError && (
-                <div className="text-red-500 text-sm text-center mb-4">{errors.apiError}</div>
+                <div className="text-red-500 text-sm text-center mb-4">
+                  {errors.apiError}
+                </div>
               )}
 
               {/* Submit Button */}

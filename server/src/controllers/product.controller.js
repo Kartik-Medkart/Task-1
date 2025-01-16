@@ -8,12 +8,19 @@ import {
   deleteFromCloudinary,
 } from "../utils/cloudinary.js";
 
-const { Product, ProductImages, ProductTags } = models;
+const { Product, ProductImages, ProductTags, Tag } = models;
 
 // Create a new product
 export const createProduct = asyncHandler(async (req, res) => {
   console.log("Create Product Controller");
-  const { product_name, ws_code, price, package_size, tags } = req.body;
+  const { product_name, ws_code, price, package_size } = req.body;
+  let { tags } = req.body;
+
+  let message = "Product Created Successfully";
+
+  if(!Array.isArray(tags) && tags) {
+    tags = [tags];
+  }
 
   const product = await Product.findOne({ where: { ws_code } });
 
@@ -32,7 +39,7 @@ export const createProduct = asyncHandler(async (req, res) => {
       product_name,
       ws_code,
       price,
-      package_size
+      package_size,
     });
   } catch (error) {
     res
@@ -47,35 +54,76 @@ export const createProduct = asyncHandler(async (req, res) => {
     throw new ApiError(400, error?.message || "Error While Creating Product");
   }
 
-  if (req.files && req.files.images) {
+  let images;
+  if (Array.isArray(req.files.images)) {
     const files = req.files.images;
 
     try {
       const uploadPromises = files.map(async (file) => {
+        const imageName = file.originalname;
         const image = await uploadOnCloudinary(file.path);
-        return ProductImages.create({
-          product_id: newProduct.product_id,
-          url: image.secure_url,
-        });
+        if(image){
+          return ProductImages.create({
+            product_id: newProduct.product_id,
+            url: image.secure_url,
+          });
+        }
+        else{
+          message += `\n${imageName} not uploaded.`;
+          return Promise.resolve();
+        }
       });
 
-      await Promise.all(uploadPromises);
+      images = await Promise.all(uploadPromises);
+      images = images.map((image) => {
+        image = image.toJSON();
+        return { id: image.image_id, url: image.url };
+      });
     } catch (error) {
       console.log(error);
       res
         .status(400)
         .json(new ApiResponse(400, null, "Error While Uploading Images"));
-        throw new ApiError(400, "Error While Uploading Images" || error.message);
+      throw new ApiError(400, "Error While Uploading Images" || error.message);
+    }
+  } else {
+    const file = req.file.images;
+    try {
+      const image = await uploadOnCloudinary(file.path);
+      if(image){
+        const newImage = await ProductImages.create({
+          product_id: newProduct.product_id,
+          url: image.secure_url,
+        });
+      }
+      else{
+        message += "\nImage not uploaded.";
+      }
+    } catch (error) {
+      console.log(error);
+      res
+        .status(400)
+        .json(new ApiResponse(400, null, "Error While Uploading Images"));
+      throw new ApiError(400, "Error While Uploading Images" || error.message);
     }
   }
 
-  if (tags && tags.length > 0) {
+  let addedTags = [];
+  if (Array.isArray(tags)) {
     try {
-      const tagPromises = tags.map(tag_id => {
-        return ProductTags.create({
-          product_id: newProduct.product_id,
-          tag_id,
-        });
+      const tagPromises = tags.map(async (tag_id) => {
+        const tag = await Tag.findByPk(tag_id);
+        console.log(tag);
+        if (tag) {
+          addedTags.push(tag.tag_id);
+          return ProductTags.create({
+            product_id: newProduct.product_id,
+            tag_id,
+          });
+        } else {
+          message += `\nTag with ID ${tag_id} not found.`;
+          return Promise.resolve();
+        }
       });
 
       await Promise.all(tagPromises);
@@ -88,9 +136,13 @@ export const createProduct = asyncHandler(async (req, res) => {
     }
   }
 
+  newProduct = newProduct.toJSON();
+  newProduct.images = images;
+  newProduct.tags = addedTags;
+
   res
     .status(201)
-    .json(new ApiResponse(201, newProduct, "Product Created Successfully"));
+    .json(new ApiResponse(201, newProduct, message));
 });
 
 // Get all products
@@ -98,38 +150,32 @@ export const getAllProducts = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
 
   const offset = (page - 1) * limit;
-  
-  const products = await Product.findAndCountAll({
+
+  let products = await Product.findAndCountAll({
     limit: Number(limit),
     offset: Number(offset),
   });
 
-  // console.log()
+  const totalItems = products.count;
+  products = products.rows;
+  const totalPages = Math.ceil(totalItems / limit);
 
-  // const productsWithImages = await Promise.all((
-  //   products.rows.map(async (product) => {
-  //     const image = await ProductImages.findOne({
-  //       where: { product_id: product.product_id },
-  //     });
+  products = products.map((product) => product.toJSON());
 
-  //     // const images = Product_Images.map((image) => {
-  //     //   return {id : image.image_id,url : image.url}
-  //     // }
-  //     // );
-  //     product = product.toJSON();
-  //     product.image = image.url;
-  //     return product;
-  //   })
-  // ));
-
-  const totalPages = Math.ceil(products.count / limit);
+  for (let product of products) {
+    let image = await ProductImages.findOne({
+      where: { product_id: product.product_id },
+    });
+    image = { id: image.image_id, url: image.url };
+    product.image = image;
+  }
 
   res.status(200).json(
     new ApiResponse(
       200,
       {
-        products: products.rows,
-        totalItems: products.count,
+        products,
+        totalItems,
         totalPages,
         currentPage: Number(page),
       },
@@ -153,9 +199,8 @@ export const getProductByWsCode = asyncHandler(async (req, res) => {
   });
 
   const images = Product_Images.map((image) => {
-    return {id : image.image_id,url : image.url}
-  }
-  );
+    return { id: image.image_id, url: image.url };
+  });
   product = product.toJSON();
   product.images = images;
 
@@ -191,12 +236,14 @@ export const updateProductImage = asyncHandler(async (req, res) => {
   const { currentImageId } = req.body;
   const newImage = req.file;
 
-  if(!newImage){
+  if (!newImage) {
     res.status(400).json(new ApiResponse(400, null, "Image is required"));
     throw new ApiError("Image is required");
   }
 
-  const image = await ProductImages.findOne({ where: { image_id: currentImageId } });
+  const image = await ProductImages.findOne({
+    where: { image_id: currentImageId },
+  });
 
   if (!image) {
     res.status(404).json(new ApiResponse(404, null, "Image Not Found"));
@@ -224,8 +271,10 @@ export const updateProductImages = asyncHandler(async (req, res) => {
   const { WsCode } = req.body;
 
   const product = await Product.findOne({ where: { ws_code: WsCode } });
-  
-  const images = await ProductImages.findAll({ where: { product_id: product.product_id } });
+
+  const images = await ProductImages.findAll({
+    where: { product_id: product.product_id },
+  });
 
   if (!product) {
     res.status(404).json(new ApiResponse(404, null, "Product Not Found"));
@@ -250,10 +299,9 @@ export const updateProductImages = asyncHandler(async (req, res) => {
       res
         .status(400)
         .json(new ApiResponse(400, null, "Error While Uploading Images"));
-        throw new ApiError(400, "Error While Uploading Images" || error.message);
+      throw new ApiError(400, "Error While Uploading Images" || error.message);
     }
   }
-
 
   await Promise.all(
     images.map(async (imageUrl) => {
@@ -285,7 +333,9 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     throw new ApiError("Product Not Found");
   }
 
-  const currentImageUrls = await ProductImages.findAll({where: { product_id: product.product_id }});
+  const currentImageUrls = await ProductImages.findAll({
+    where: { product_id: product.product_id },
+  });
 
   await Promise.all(
     currentImageUrls.map(async (image) => {
@@ -301,7 +351,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
 });
 
 export const searchProducts = asyncHandler(async (req, res) => {
-  const { product_name, min_price, max_price, tags } = req.query;
+  const { product_name } = req.query;
 
   const whereClause = {};
 
@@ -309,25 +359,36 @@ export const searchProducts = asyncHandler(async (req, res) => {
     whereClause.product_name = { [Op.iLike]: `%${product_name}%` };
   }
 
-  if (min_price || max_price) {
-    whereClause.price = {};
-    if (min_price) {
-      whereClause.price[Op.gte] = Number(min_price);
-    }
-    if (max_price) {
-      whereClause.price[Op.lte] = Number(max_price);
-    }
+  let products = await Product.findAndCountAll({
+    where: whereClause,
+    limit: Number(limit),
+    offset: Number(offset),
+  });
+
+  const totalItems = products.count;
+  products = products.rows;
+  const totalPages = Math.ceil(totalItems / limit);
+
+  products = products.map((product) => product.toJSON());
+
+  for (let product of products) {
+    let image = await ProductImages.findOne({
+      where: { product_id: product.product_id },
+    });
+    image = { id: image.image_id, url: image.url };
+    product.image = image;
   }
 
-  if (tags) {
-    whereClause.tags = { [Op.overlap]: tags.split(",") };
-  }
-
-  console.log(whereClause);
-
-  const products = await Product.findAll({ where: whereClause });
-
-  res
-    .status(200)
-    .json(new ApiResponse(200, products, "Products Retrieved Successfully"));
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        products,
+        totalItems,
+        totalPages,
+        currentPage: Number(page),
+      },
+      "Products Retrieved Successfully"
+    )
+  );
 });

@@ -3,7 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
-import { loginUser } from "../services/api"; // Import the loginUser function
+import { loginUserAPI } from "../services/api"; // Import the loginUserAPI function
 
 const LoginPage = () => {
   const { login } = useAuth();
@@ -20,7 +20,7 @@ const LoginPage = () => {
   // Handle form submission
   const handleSubmit = async (values, { setSubmitting, setErrors }) => {
     try {
-      const response = await loginUser(values);
+      const response = await loginUserAPI(values);
       const {data} = response.data;
       login(data.user);
       navigate(from, { replace: true });
@@ -33,7 +33,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
+    <div className="flex justify-center py-10 bg-gray-100">
       <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
         <Formik
