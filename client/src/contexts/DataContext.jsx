@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getTagsAPI, getCategoriesAPI } from '../api/data'; // Assume these API calls are defined
+import { getTagsAPI, getCategoriesAPI } from '../services/api'; // Assume these API calls are defined
 
 const DataContext = createContext();
 
@@ -16,8 +16,8 @@ export const DataProvider = ({ children }) => {
           getTagsAPI(),
           getCategoriesAPI(),
         ]);
-        setTags(tagsResponse.tags);
-        setCategories(categoriesResponse.categories);
+        setTags(tagsResponse.data);
+        setCategories(categoriesResponse.data);
       } catch (error) {
         console.error('Error fetching data: ', error);
       } finally {

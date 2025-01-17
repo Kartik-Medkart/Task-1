@@ -11,14 +11,15 @@ const router = Router();
 
 import { verifyJWT, restrict } from "../middlewares/auth.middleware.js";
 
+// Route to get all tags
+router.get("/", getAllTags);
+
 router.use(verifyJWT);
 router.use(restrict(["admin"]))
 
 // Route to create a new tag
 router.post("/", createTag);
 
-// Route to get all tags
-router.get("/", getAllTags);
 
 // Route to get a single tag by ID
 router.get("/:id", getTagById);

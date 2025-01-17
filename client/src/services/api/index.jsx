@@ -1,6 +1,5 @@
 import { SERVER_URL } from "../../constants";
 import axios from "axios";
-import {useNavigate} from "react-router-dom";
 import { toast } from "react-toastify";
 
 
@@ -58,15 +57,15 @@ export const registerUserAPI = (userData) => api.post("/user", userData);
 export const loginUserAPI = (credentials) => api.post("/user/login", credentials);
 export const updateUserAPI = (userData) =>
   api.post("/user/update", userData);
-export const logoutUserAPI = (token) =>
+export const logoutUserAPI = () =>
   api.post("/user/logout");
 
 
 // Product Api Calls
 
 export const getProducts = (page=1,limit=10) => api.get(`/product?page=${page}&limit=${limit}`);
-export const searchProducts = (search) => api.get(`/product/search`, {
-  params: { product_name: search },
+export const searchProductsAPI = (search, selectedCategory, selectedTags, currentPage, itemsPerPage) => api.get(`/product/search`, {
+  params: { product_name: search, category: selectedCategory, tags: selectedTags, page: currentPage, limit: itemsPerPage },
 });
 
 // Cart Api Calls
@@ -83,13 +82,19 @@ export const getOrdersAPI = () => api.get("/order");
 
 export const getAllOrdersAPI = (page = 1, limit = 10) => api.get(`/order/all?page=${page}&limit=${limit}`);
 export const updateOrderStatusAPI = (id, status) =>
-  api.put(`/orders/${id}`, { status });
+  api.put(`/order/${id}`, { status });
 
 // Product Api Calls
 
-export const createProduct = (data) => api.post("/product", data);
+export const createProductAPI = (data) => api.post("/product", data);
+export const getProductAPI = (id) => api.get(`/product/${id}`);
+export const updateProductAPI = (id, data) => api.put(`/product/${id}`, data);   // data => product_name, price, package_size
+export const updateProductImageAPI = (data) => api.post(`/product/update-image`, data);  //  data => currentImageId , image as flle
+export const updateProductImagesAPI = (data) => api.post(`/product/update-images/`, data);  // data => images as file array
 
 export const getCategoriesAPI = () => api.get("/category");
+export const createCategoryAPI = (category) => api.post("/category", category);
+export const updateCategoryAPI = (category, id) => api.put(`/category/${id}`, category);
 
 export const getTagsAPI = () => api.get("/tag");
 export const createTagAPI = (tag) => api.post("/tag", tag);

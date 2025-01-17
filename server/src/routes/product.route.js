@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-  createProduct,
+  createProductAPI,
   getAllProducts,
   updateProduct,
   deleteProduct,
@@ -20,35 +20,15 @@ router.post(
   "/",
   verifyJWT,
   restrict(["admin"]),
-  (req, res, next) => {
-    upload.fields([{ name: "images", maxCount: 4 }])(req, res, function (err) {
-      if (
-        err instanceof multer.MulterError &&
-        err.code === "LIMIT_UNEXPECTED_FILE"
-      ) {
-        return res
-          .status(400)
-          .json(
-            new ApiResponse(
-              400,
-              null,
-              "Too many files uploaded. Maximum 4 images are allowed."
-            )
-          );
-      } else if (err) {
-        return res.status(400).json(new ApiResponse(400, null, err.message));
-      }
-      next();
-    });
-  },
-  createProduct
+  upload.fields([{ name: "images", maxCount: 4 }]),
+  createProductAPI
 );
 router.get("/", getAllProducts);
 router.get("/search", searchProducts);
 
 router.get("/:WsCode", getProductByWsCode);
 
-router.patch(
+router.post(
   "/update-image",
   verifyJWT,
   restrict(["admin"]),
@@ -56,7 +36,7 @@ router.patch(
   updateProductImage
 );
 
-router.put(
+router.post(
   "/update-images",
   verifyJWT,
   restrict(["admin"]),

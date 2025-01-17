@@ -1,6 +1,6 @@
 import React from "react";
 
-const HomePage = () => {
+const CategoriesPage = () => {
     return (
         <div className="p-6">
         <h1 className="text-2xl font-bold">Categories Page</h1>
@@ -9,4 +9,4 @@ const HomePage = () => {
     );
 }
 
-export default HomePage;
+export default CategoriesPage;

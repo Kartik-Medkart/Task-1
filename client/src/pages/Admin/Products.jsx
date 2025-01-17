@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { getProducts, searchProducts } from "../../services/api";
+import { getProducts, getProductAPI} from "../../services/api";
 import { useCart } from "../../contexts/CartContext";
 import ProductForm from "../../components/ProductForm";
+import ProductEdit from "../../components/ProductEdit";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -14,8 +15,9 @@ const Products = () => {
   const [totalProducts, setTotalProducts] = useState(0);
   const [tags, setTags] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const { addToCart } = useCart();
-  const itemsPerPage = 5;
+  const [showEdit, setShowEdit] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState({});
+  const itemsPerPage = 8;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -24,8 +26,7 @@ const Products = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const limit = 5;
-        const response = await getProducts(currentPage, limit);
+        const response = await getProducts(currentPage, itemsPerPage);
         const { data } = response;
         console.log("Products: ", data.products);
         setTotalPages(data.totalPages);
@@ -37,11 +38,25 @@ const Products = () => {
     };
 
     fetchProducts();
-  }, [currentPage]);
+  }, [currentPage,showForm, showEdit ]);
 
-  const editProduct = (product) => {
-    console.log(product);
-  };
+  const editProduct = async(product) => {
+    const fetchProduct = async (ws_code) => {
+      try {
+        const response = await getProductAPI(ws_code);
+        const { data, success } = response;
+        console.log("data", data);
+        if (success) {
+            return data;
+        };
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      }
+    };
+    const data = await fetchProduct(product.ws_code);
+    setSelectedProduct(data);
+    setShowEdit(true);
+  }
 
   const PaginationComponent = () => (
     <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 mt-5 sm:px-6">
@@ -125,6 +140,7 @@ const Products = () => {
           </button>
         </div>
         {showForm && <ProductForm onClose={() => setShowForm(false)} />}
+        {showEdit && <ProductEdit product={selectedProduct} onClose={() => setShowEdit(false)} />}
         <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
           {products?.length > 0 &&
             products.map((product) => (

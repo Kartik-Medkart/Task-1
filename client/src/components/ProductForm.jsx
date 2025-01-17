@@ -1,34 +1,57 @@
-import React from "react";
+import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { toast } from "react-toastify";
+import { createProductAPI } from "../services/api";
+import { useData } from "../contexts/DataContext";
 
 const ProductForm = ({ onClose }) => {
   const initialValues = {
-    productName: "",
-    wsCode: "",
+    product_name: "",
+    ws_code: "",
     price: "",
-    packageSize: "",
+    package_size: "",
     images: [],
-    category: "",
+    category_id: "",
     tags: [],
   };
+  const [selectedTags, setSelectedTags] = useState([]);
+
+  const { categories, tags } = useData();
 
   const validationSchema = Yup.object({
-    productName: Yup.string().required("Product name is required"),
-    wsCode: Yup.string().required("WS code is required"),
+    product_name: Yup.string().required("Product name is required"),
+    ws_code: Yup.string().required("WS code is required"),
     price: Yup.number()
       .required("Price is required")
       .positive("Price must be positive"),
-    packageSize: Yup.string().required("Package size is required"),
-    category: Yup.string().required("Category is required"),
+    package_size: Yup.string().required("Package size is required"),
+    category_id: Yup.string().required("Category is required"),
     tags: Yup.array().min(1, "At least one tag is required"),
   });
 
   const handleSubmit = async (values, { setSubmitting }) => {
+    const formData = new FormData();
+
+    formData.append("product_name", values.product_name);
+    formData.append("ws_code", values.ws_code);
+    formData.append("price", values.price);
+    formData.append("package_size", values.package_size);
+    formData.append("category_id", values.category_id);
+  
+    values.images.forEach((imageObj) => {
+      formData.append(`images`, imageObj);
+    });
+  
+    values.tags.forEach((tag, index) => {
+      formData.append(`tags[${index}]`, tag);
+    });
+
     try {
-      const response = await addProductAPI(values);
+      const response = await createProductAPI(formData);
       const { success, message } = response;
       if (success) {
+        setSubmitting(false);
         onClose();
         toast.success(message);
       }
@@ -36,10 +59,20 @@ const ProductForm = ({ onClose }) => {
       console.error("Error adding product: ", error);
       toast.error("Error adding product");
     }
-    setSubmitting(false);
-    onClose();
   };
 
+  const handleImageUpload = (e, setFieldValue, values) => {
+    console.log("e.target.files: ", e.target.files); 
+    const files = Array.from(e.target.files);
+    console.log("current file: ", files);
+    setFieldValue("images", [...values.images, ...files]);
+  };
+
+  const handleRemoveImage = (setFieldValue, values, index) => {
+    const updatedImages = values.images.filter((_, i) => i !== index);
+    setFieldValue("images", updatedImages);
+  };
+  
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-xl">
@@ -49,40 +82,40 @@ const ProductForm = ({ onClose }) => {
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {({ setFieldValue }) => (
+          {({ setFieldValue, values }) => (
             <Form>
               <div className="mb-4">
                 <label
-                  htmlFor="productName"
+                  htmlFor="product_name"
                   className="block text-md font-medium text-gray-700"
                 >
                   Product Name
                 </label>
                 <Field
-                  name="productName"
+                  name="product_name"
                   type="text"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-md"
+                  className="mt-1 block w-full border border-gray-300 rounded-sm p-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-md"
                 />
                 <ErrorMessage
-                  name="productName"
+                  name="product_name"
                   component="div"
                   className="text-red-500 text-md mt-1"
                 />
               </div>
               <div className="mb-4">
                 <label
-                  htmlFor="wsCode"
+                  htmlFor="ws_code"
                   className="block text-md font-medium text-gray-700"
                 >
                   WS Code
                 </label>
                 <Field
-                  name="wsCode"
+                  name="ws_code"
                   type="text"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-md"
+                  className="mt-1 block w-full border border-gray-300 rounded-sm p-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-md"
                 />
                 <ErrorMessage
-                  name="wsCode"
+                  name="ws_code"
                   component="div"
                   className="text-red-500 text-md mt-1"
                 />
@@ -98,7 +131,7 @@ const ProductForm = ({ onClose }) => {
                   <Field
                     name="price"
                     type="number"
-                    className="mt-1 block border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-md"
+                    className="mt-1 block border border-gray-300 rounded-sm p-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-md"
                   />
                   <ErrorMessage
                     name="price"
@@ -108,18 +141,18 @@ const ProductForm = ({ onClose }) => {
                 </div>
                 <div className="mb-4">
                   <label
-                    htmlFor="packageSize"
+                    htmlFor="package_size"
                     className="block text-md font-medium text-gray-700"
                   >
                     Package Size
                   </label>
                   <Field
-                    name="packageSize"
+                    name="package_size"
                     type="text"
-                    className="mt-1 block border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-md"
+                    className="mt-1 block border border-gray-300 rounded-sm p-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-md"
                   />
                   <ErrorMessage
-                    name="packageSize"
+                    name="package_size"
                     component="div"
                     className="text-red-500 text-md mt-1"
                   />
@@ -130,37 +163,66 @@ const ProductForm = ({ onClose }) => {
                   htmlFor="images"
                   className="block text-md font-medium text-gray-700"
                 >
-                  Upload Images
+                  Images
                 </label>
                 <input
-                  name="images"
                   type="file"
+                  id="images"
+                  accept="image/*"
                   multiple
-                  className="mt-1 block w-full text-md text-gray-500"
-                  onChange={(event) => {
-                    setFieldValue("images", event.currentTarget.files);
-                  }}
+                  className="mt-1 mb-2 px-4 py-2 border rounded-sm p-1 text-gray-700 bg-gray-100 hover:bg-gray-200 cursor-pointer"
+                  onChange={(e) => handleImageUpload(e, setFieldValue, values)}
+                />
+                <div className="flex flex-wrap mt-2">
+                  {values.images.map((imageUrl, index) => (
+                    <div key={index} className="mr-2 mb-2 relative">
+                      <img
+                        src={URL.createObjectURL(imageUrl)}
+                        alt="Category"
+                        className="w-32 h-32 object-cover rounded"
+                      />
+                      <button
+                        type="button"
+                        className="absolute top-0 right-0 mt-1 mr-1 text-white bg-red-500 rounded-full p-1"
+                        onClick={() =>
+                          handleRemoveImage(setFieldValue, values, index)
+                        }
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <ErrorMessage
+                  name="images"
+                  component="div"
+                  className="text-red-500 text-md mt-1"
                 />
               </div>
               <div className="mb-4">
                 <label
-                  htmlFor="category"
+                  htmlFor="category_id"
                   className="block text-md font-medium text-gray-700"
                 >
                   Category
                 </label>
                 <Field
                   as="select"
-                  name="category"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-md"
+                  name="category_id"
+                  className="mt-1 block w-full border border-gray-300 rounded-sm p-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-md"
                 >
                   <option value="">Select a category</option>
-                  <option value="electronics">Electronics</option>
-                  <option value="clothing">Clothing</option>
-                  <option value="home">Home</option>
+                  {categories.map((category) => (
+                    <option
+                      key={category.category_id}
+                      value={category.category_id}
+                    >
+                      {category.name}
+                    </option>
+                  ))}
                 </Field>
                 <ErrorMessage
-                  name="category"
+                  name="category_id"
                   component="div"
                   className="text-red-500 text-md mt-1"
                 />
@@ -172,16 +234,44 @@ const ProductForm = ({ onClose }) => {
                 >
                   Tags
                 </label>
-                <Field
-                  as="select"
-                  name="tags"
-                  multiple
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-md"
+                <select
+                  className="mt-1 block w-full border border-gray-300 rounded-sm p-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-md"
+                  onChange={(event) => {
+                    const selectedTag = event.target.value;
+                    if (selectedTag && !values.tags.includes(selectedTag)) {
+                      setFieldValue("tags", [...values.tags, selectedTag]);
+                    }
+                  }}
                 >
-                  <option value="new">New</option>
-                  <option value="sale">Sale</option>
-                  <option value="popular">Popular</option>
-                </Field>
+                  <option value="">Select tags</option>
+                  {tags.map((tag) => (
+                    <option key={tag.tag_id} value={tag.tag_id}>
+                      {tag.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex flex-wrap mt-2">
+                  {values.tags.map((tag) => (
+                    <div
+                      key={tag}
+                      className="mr-2 mb-2 px-4 py-2 bg-blue-500 text-white rounded flex items-center"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        className="ml-2 text-white"
+                        onClick={() => {
+                          setFieldValue(
+                            "tags",
+                            values.tags.filter((t) => t !== tag)
+                          );
+                        }}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
                 <ErrorMessage
                   name="tags"
                   component="div"

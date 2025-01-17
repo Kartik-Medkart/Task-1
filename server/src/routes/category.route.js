@@ -10,14 +10,13 @@ import { verifyJWT, restrict } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-router.use(verifyJWT);
-router.use(restrict(["admin"]));
-
-// Route to create a new category
-router.post("/", createCategory);
-
 // Route to get all categories
 router.get("/", getAllCategories);
+
+router.use(verifyJWT);
+router.use(restrict(["admin"]));
+// Route to create a new category
+router.post("/", createCategory);
 
 // Route to get a single category by ID
 router.get("/:id", getCategoryById);

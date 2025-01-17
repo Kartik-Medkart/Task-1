@@ -8,18 +8,34 @@ import {
   deleteFromCloudinary,
 } from "../utils/cloudinary.js";
 
-
 const { Product, ProductImages, ProductTags, Tag, Category } = models;
 
+function isNumber(value) {
+  return /^-?\d*(\.\d+)?$/.test(value);
+}
+
 // Create a new product
-export const createProduct = asyncHandler(async (req, res) => {
+export const createProductAPI = asyncHandler(async (req, res) => {
   console.log("Create Product Controller");
   const { product_name, ws_code, price, package_size, category_id } = req.body;
   let { tags } = req.body;
 
+  if (!product_name || !ws_code || !price || !package_size || !category_id) {
+    console.log(product_name, ws_code, price, package_size, category_id);
+    res
+      .status(400)
+      .json(new ApiResponse(400, null, "Please provide all required fields"));
+  }
+
+  if (!isNumber(ws_code) && ws_code < 0) {
+    res
+      .status(400)
+      .json(new ApiResponse(400, null, "WS Code must be a positive number"));
+  }
+
   let message = "Product Created Successfully";
 
-  if(!Array.isArray(tags) && tags) {
+  if (!Array.isArray(tags) && tags) {
     tags = [tags];
   }
 
@@ -36,12 +52,10 @@ export const createProduct = asyncHandler(async (req, res) => {
 
   const category = await Category.findByPk(category_id);
 
-  if(!category){
+  if (!category) {
     res
       .status(400)
-      .json(
-        new ApiResponse(400, null, "Category with this ID does not exist")
-      );
+      .json(new ApiResponse(400, null, "Category with this ID does not exist"));
   }
 
   let newProduct;
@@ -67,20 +81,19 @@ export const createProduct = asyncHandler(async (req, res) => {
   }
 
   let images;
-  if (Array.isArray(req.files.images)) {
+  if (Array.isArray(req.files?.images) && req.files?.images.length > 0) {
     const files = req.files.images;
 
     try {
       const uploadPromises = files.map(async (file) => {
         const imageName = file.originalname;
         const image = await uploadOnCloudinary(file.path);
-        if(image){
-          retur.create({
+        if (image) {
+          return ProductImages.create({
             product_id: newProduct.product_id,
             url: image.secure_url,
           });
-        }
-        else{
+        } else {
           message += `\n${imageName} not uploaded.`;
           return Promise.resolve();
         }
@@ -98,26 +111,6 @@ export const createProduct = asyncHandler(async (req, res) => {
         .json(new ApiResponse(400, null, "Error While Uploading Images"));
       throw new ApiError(400, "Error While Uploading Images" || error.message);
     }
-  } else {
-    const file = req.file.images;
-    try {
-      const image = await uploadOnCloudinary(file.path);
-      if(image){
-        const newImage = await ProductImages.create({
-          product_id: newProduct.product_id,
-          url: image.secure_url,
-        });
-      }
-      else{
-        message += "\nImage not uploaded.";
-      }
-    } catch (error) {
-      console.log(error);
-      res
-        .status(400)
-        .json(new ApiResponse(400, null, "Error While Uploading Images"));
-      throw new ApiError(400, "Error While Uploading Images" || error.message);
-    }
   }
 
   let addedTags = [];
@@ -125,17 +118,21 @@ export const createProduct = asyncHandler(async (req, res) => {
     try {
       const tagPromises = tags.map(async (tag_id) => {
         const tag = await Tag.findByPk(tag_id);
-        console.log(tag);
-        if (tag) {
-          addedTags.push(tag.tag_id);
-          return ProductTags.create({
-            product_id: newProduct.product_id,
-            tag_id,
-          });
-        } else {
+        if (!tag) {
           message += `\nTag with ID ${tag_id} not found.`;
           return Promise.resolve();
         }
+        const productTag = await ProductTags.findOne({
+          where: { product_id: newProduct.product_id, tag_id },
+        });
+        if (productTag) {
+          return Promise.resolve();
+        }
+        addedTags.push(tag.tag_id);
+        return ProductTags.create({
+          product_id: newProduct.product_id,
+          tag_id,
+        });
       });
 
       await Promise.all(tagPromises);
@@ -152,9 +149,7 @@ export const createProduct = asyncHandler(async (req, res) => {
   newProduct.images = images;
   newProduct.tags = addedTags;
 
-  res
-    .status(201)
-    .json(new ApiResponse(201, newProduct, message));
+  res.status(201).json(new ApiResponse(201, newProduct, message));
 });
 
 // Get all products
@@ -178,7 +173,11 @@ export const getAllProducts = asyncHandler(async (req, res) => {
     let image = await ProductImages.findOne({
       where: { product_id: product.product_id },
     });
+    let tags = await ProductTags.findAll({
+      where: { product_id: product.product_id },
+    });
     image = { id: image?.image_id || "", url: image?.url || "" };
+    product.tags = tags.map((tag) => tag.tag_id);
     product.image = image;
   }
 
@@ -213,8 +212,16 @@ export const getProductByWsCode = asyncHandler(async (req, res) => {
   const images = Product_Images.map((image) => {
     return { id: image.image_id, url: image.url };
   });
+
+  let Tags = await ProductTags.findAll({
+    where: { product_id: product.product_id },
+  })
+
+  Tags = Tags.map((tag) => tag.tag_id);
+
   product = product.toJSON();
   product.images = images;
+  product.tags = Tags;
 
   res
     .status(200)
@@ -224,7 +231,7 @@ export const getProductByWsCode = asyncHandler(async (req, res) => {
 // Update a product by ID
 export const updateProduct = asyncHandler(async (req, res) => {
   const { WsCode } = req.params;
-  const { product_name, price, package_size } = req.body;
+  const { product_name, price, package_size, category_id, tags } = req.body;
 
   const product = await Product.findOne({ where: { ws_code: WsCode } });
 
@@ -236,6 +243,49 @@ export const updateProduct = asyncHandler(async (req, res) => {
   product.product_name = product_name;
   product.price = price;
   product.package_size = package_size;
+  product.category_id = category_id;
+
+  const currentTags = await ProductTags.findAll({
+    where: { product_id: product.product_id },
+  });
+
+  for(let tag of currentTags){
+    await tag.destroy();
+  }
+
+  console.log(tags);
+
+  let addedTags = [];
+  if (Array.isArray(tags)) {
+    try {
+      const tagPromises = tags.map(async (tag_id) => {
+        const tag = await Tag.findByPk(tag_id);
+        if (!tag) {
+          message += `\nTag with ID ${tag_id} not found.`;
+          return Promise.resolve();
+        }
+        const productTag = await ProductTags.findOne({
+          where: { product_id: product.product_id, tag_id },
+        });
+        if (productTag) {
+          return Promise.resolve();
+        }
+        addedTags.push(tag.tag_id);
+        return ProductTags.create({
+          product_id: product.product_id,
+          tag_id,
+        });
+      });
+
+      await Promise.all(tagPromises);
+    } catch (error) {
+      console.log(error);
+      res
+        .status(400)
+        .json(new ApiResponse(400, null, "Error While Adding Tags to Product"));
+      throw new ApiError(400, "Error While Adding Tags to Product");
+    }
+  }
 
   await product.save();
 
@@ -247,6 +297,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
 export const updateProductImage = asyncHandler(async (req, res) => {
   const { currentImageId } = req.body;
   const newImage = req.file;
+  console.log(req.file);
 
   if (!newImage) {
     res.status(400).json(new ApiResponse(400, null, "Image is required"));
@@ -317,11 +368,13 @@ export const updateProductImages = asyncHandler(async (req, res) => {
 
   await Promise.all(
     images.map(async (imageUrl) => {
-      await deleteFromCloudinary(imageUrl);
+      await deleteFromCloudinary(imageUrl.url);
     })
   );
 
-  await images.destroy();
+  for(let image of images){
+    await image.destroy();
+  }
 
   res
     .status(200)
@@ -363,44 +416,101 @@ export const deleteProduct = asyncHandler(async (req, res) => {
 });
 
 export const searchProducts = asyncHandler(async (req, res) => {
-  const { product_name } = req.query;
+  try {
+    const { product_name, ws_code, category_id, tags } = req.query;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const offset = (page - 1) * limit;
 
-  const whereClause = {};
+    console.log(tags);
 
-  if (product_name) {
-    whereClause.product_name = { [Op.iLike]: `%${product_name}%` };
-  }
+    const whereClause = {};
 
-  let products = await Product.findAndCountAll({
-    where: whereClause,
-    limit: Number(limit),
-    offset: Number(offset),
-  });
+    if (product_name || ws_code) {
+      whereClause[Op.or] = [];
+      if (product_name) {
+        whereClause[Op.or].push({ product_name: { [Op.iLike]: `%${product_name}%` } });
+      }
+      if (ws_code) {
+        whereClause[Op.or].push({ ws_code });
+      }
+    }
 
-  const totalItems = products.count;
-  products = products.rows;
-  const totalPages = Math.ceil(totalItems / limit);
+    if (category_id) {
+      whereClause.category_id = category_id;
+    }
 
-  products = products.map((product) => product.toJSON());
+    if (tags) {
+      let Tag_Ids = Array.isArray(tags) ? tags : [tags];
+      const productTags = await ProductTags.findAll({
+        where: { tag_id: { [Op.in]: Tag_Ids } },
+        attributes: ["product_id"],
+      });
+  
+      const productIds = [...new Set(productTags.map((productTag) => productTag.product_id))];
+  
+      whereClause.product_id = { [Op.in]: productIds };
+    }
 
-  for (let product of products) {
-    let image = await ProductImages.findOne({
-      where: { product_id: product.product_id },
+    const { rows: products, count: totalItems } = await Product.findAndCountAll({
+      where: whereClause,
+      limit,
+      offset,
     });
-    image = { id: image.image_id, url: image.url };
-    product.image = image;
-  }
 
-  res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        products,
-        totalItems,
-        totalPages,
-        currentPage: Number(page),
-      },
-      "Products Retrieved Successfully"
-    )
-  );
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const productsWithImages = await Promise.all(
+      products.map(async (product) => {
+        const image = await ProductImages.findOne({
+          where: { product_id: product.product_id },
+          attributes: ["image_id", "url"],
+        });
+
+        return {
+          ...product.toJSON(),
+          image: image ? { id: image.image_id, url: image.url } : null,
+        };
+      })
+    );
+
+    // Return response
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          products: productsWithImages,
+          totalItems,
+          totalPages,
+          currentPage: page,
+        },
+        "Products Retrieved Successfully"
+      )
+    );
+  } catch (error) {
+    console.error("Error retrieving products:", error);
+  }
 });
+
+export const getProductsByCategory = async (req, res) => {
+  try {
+    const categories = await Category.findAll();
+    const productsByCategory = await Promise.all(
+      categories.map(async (category) => {
+        const products = await Product.findAll({
+          where: { category_id: category.id },
+          limit: 5,
+        });
+        return {
+          category: category.name,
+          products,
+        };
+      })
+    );
+
+    res.status(200).json(new ApiResponse(200, productsByCategory, "Products by category retrieved successfully"));
+  } catch (error) {
+    console.error('Error fetching products by category:', error);
+    res.status(500).json({ error: 'An error occurred while fetching products by category' });
+  }
+};

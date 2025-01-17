@@ -175,6 +175,9 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   }
 
   order.order_status = status;
+  if(status === "delivered"){
+    order.delivered_date = new Date();
+  }
   await order.save();
 
   res

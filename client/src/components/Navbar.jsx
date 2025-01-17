@@ -19,13 +19,13 @@ function classNames(...classes) {
 export default function Navbar() {
   const [navigation, setNavigation] = useState([
     { name: "Home", href: "/", current: true },
-    { name: "Categories", href: "/catgeories", current: false },
+    // { name: "Categories", href: "/catgeories", current: false },
     { name: "Products", href: "/products", current: false },
     { name: "Cart", href: "/cart", current: false },
   ]);
 
   useEffect(() => {
-    if (window.location.pathname === "/login") {
+    if (window.location.pathname) {
       setNavigation(
         navigation.map((nav) => ({
           ...nav,

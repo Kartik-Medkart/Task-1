@@ -10,11 +10,12 @@ import { FaMinus, FaPlus, FaUser, FaBox, FaTimes } from "react-icons/fa";
 
 import Orders from "./Orders";
 import Products from "./Products";
-import Tags from "./Tags"
+import Tags from "./Tags";
+import Category from "./Category";
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("profile");
-  const { user, login, logout } = useAuth();
+  const { user, setLocalUser, logout } = useAuth();
 
   const initialValues = {
     firstName: user?.firstName || "",
@@ -25,6 +26,33 @@ const AdminPage = () => {
     state: user?.state || "",
     phone: user?.phone || "",
   };
+
+  const tabs = [
+    {
+      name: "profile",
+      icon: <FaUser />,
+    },
+    {
+      name: "orders",
+      icon: <FaBox />,
+    },
+    {
+      name: "products",
+      icon: <FaBox />,
+    },
+    {
+      name: "category",
+      icon: <i className="fa fa-list-alt" aria-hidden="true"></i>,
+    },
+    {
+      name: "tags",
+      icon: <i className="fa fa-tag" aria-hidden="true"></i>,
+    },
+    {
+      name: "logout",
+      icon: <i className="fad fa-sign-out" aria-hidden="true"></i>,
+    },
+  ];
 
   const validationSchema = Yup.object().shape({
     firstName: Yup.string().required("First name is required"),
@@ -46,7 +74,7 @@ const AdminPage = () => {
       const response = await updateUserAPI(userData);
       const { data, success } = response;
       if (success) {
-        setLocalUser(user);
+        setLocalUser(data);
         toast.success("Profile updated successfully");
       }
     } catch (error) {
@@ -178,106 +206,42 @@ const AdminPage = () => {
           <h1 className="text-3xl font-bold text-gray-800 mb-8">My Account</h1>
 
           {/* Tabs for mobile */}
-          <div className="md:hidden flex space-x-4 mb-4">
-            <button
-              onClick={() => setActiveTab("profile")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                activeTab === "profile"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              <FaUser />
-              <span>Profile</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("orders")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                activeTab === "orders"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              <FaBox />
-              <span>Orders</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("products")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                activeTab === "products"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              <FaBox />
-              <span>Products</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("tags")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                activeTab === "tags"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              <FaBox />
-              <span>Tags</span>
-            </button>
+          <div className="flex flex-wrap justify-start items-center gap-4 mb-4 md:hidden">
+            {tabs.map((tab) => (
+              <button
+                key={tab.name}
+                onClick={() =>{ 
+                  setActiveTab(tab.name)
+                }}
+                className={`px-4 py-2 text-sm font-medium rounded hover:bg-gray-300 ${
+                  activeTab === tab.name
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-600"
+                }`}
+              >
+                
+                <span>{tab.icon}{tab.name.charAt(0).toUpperCase() + tab.name.slice(1)}</span>
+              </button>
+            ))}
           </div>
 
           {/* Sidebar for desktop */}
           <div className="hidden md:block w-64 space-y-2">
-            <button
-              onClick={() => setActiveTab("profile")}
-              className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                activeTab === "profile"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              <FaUser />
-              <span>Profile</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("orders")}
-              className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                activeTab === "orders"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              <FaBox />
-              <span>Orders</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("products")}
-              className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                activeTab === "products"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              <FaBox />
-              <span>Products</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("tags")}
-              className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                activeTab === "tags"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              <i className="fa fa-tag" aria-hidden="true"></i>
-              <span>Tags</span>
-            </button>
-            <button
-              onClick={() => logout()}
-              className={`w-full flex items-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700`}
-            >
-              <i className="fad fa-sign-out"></i>
-              <span>Log Out</span>
-            </button>
+
+            {tabs.map((tab) => (
+              <button
+                key={tab.name}
+                onClick={() => setActiveTab(tab.name)}
+                className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                  activeTab === tab.name
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-600"
+                }`}
+              >
+                {tab.icon}
+                <span>{tab.name.charAt(0).toUpperCase() + tab.name.slice(1)}</span>
+              </button>
+            ))}
           </div>
         </div>
 
@@ -287,6 +251,8 @@ const AdminPage = () => {
           {activeTab === "orders" && <Orders />}
           {activeTab === "products" && <Products />}
           {activeTab === "tags" && <Tags />}
+          {activeTab === "category" && <Category />}
+          {activeTab === "logout" && logout()}
         </div>
       </div>
 
