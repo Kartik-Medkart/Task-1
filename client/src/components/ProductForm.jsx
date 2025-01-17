@@ -27,7 +27,7 @@ const ProductForm = ({ onClose }) => {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const response = await addProductAPI(values);
-      const { success, message } = response.data;
+      const { success, message } = response;
       if (success) {
         onClose();
         toast.success(message);

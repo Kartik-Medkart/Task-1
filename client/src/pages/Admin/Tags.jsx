@@ -10,7 +10,7 @@ const Tags = () => {
     const fetchTags = async () => {
       try {
         const response = await getTagsAPI();
-        setTags(response.data.tags);
+        setTags(response.data);
       } catch (error) {
         console.error("Error fetching tags: ", error);
       }

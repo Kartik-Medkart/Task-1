@@ -17,7 +17,7 @@ const CartPage = () => {
   const placeOrder = async() => {
     try {
         const response = await placeOrderAPI();
-        const { data, success, message } = response.data;
+        const { data, success, message } = response;
         if (success) {
           toast.success(message);
           clearCart();

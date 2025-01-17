@@ -26,7 +26,7 @@ const Products = () => {
       try {
         const limit = 5;
         const response = await getProducts(currentPage, limit);
-        const { data } = response.data;
+        const { data } = response;
         console.log("Products: ", data.products);
         setTotalPages(data.totalPages);
         setProducts(data.products);

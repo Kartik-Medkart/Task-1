@@ -32,10 +32,10 @@ const CustomerPage = () => {
       setLoading(true);
       try {
         const response = await getOrdersAPI();
-        const { data } = response.data;
+        const { data } = response;
         setOrders(data);
       } catch (error) {
-        console.error("Error fetching orders: ", error.response.data.message);
+        console.error("Error fetching orders: ", error.response.message);
       }
       setLoading(false);
     };
@@ -137,7 +137,7 @@ const CustomerPage = () => {
     const {email, ...userData} = values;
     try{
       const response = await updateUserAPI(userData);
-      const {data, success} = response.data;
+      const {data, success} = response;
       if(success){
         toast.success('Profile updated successfully');
       }

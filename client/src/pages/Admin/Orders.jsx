@@ -60,7 +60,7 @@ const Orders = () => {
     const fetchOrders = async () => {
         try {
             const response = await getAllOrdersAPI();
-            const { data} = response.data;
+            const { data} = response;
             setOrders(data.orders);
         } catch (error) {
             console.error("Error fetching orders: ", error);

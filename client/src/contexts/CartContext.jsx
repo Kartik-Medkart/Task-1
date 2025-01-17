@@ -47,14 +47,14 @@ const initialState = {
 
 export const CartProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
-  const {isAuthenticated} = useAuth();
+  const {isAuthenticated, logout} = useAuth();
 
   useEffect(() => {
     if(!isAuthenticated) return;
     const fetchCart = async () => {
       try {
         const response = await getCartAPI();
-        const { data, success, message } = response.data;
+        const { data, success, message } = response;
         if (success) {
           // toast.success(message);
           dispatch({
@@ -65,6 +65,7 @@ export const CartProvider = ({ children }) => {
           toast.error(message);
         }
       } catch (error) {
+        logout();
         console.error("Error adding to cart: ", error);
         toast.error(error?.response?.data?.message || "Error fetching cart");
       }
@@ -84,7 +85,7 @@ export const CartProvider = ({ children }) => {
     }
     try {
       const response = await addToCartAPI(product.product_id);
-      const { data, success, message } = response.data;
+      const { data, success, message } = response;
       if (success) {
         toast.success(message);
         dispatch({ type: "ADD_TO_CART", payload: { item: data.item } });
@@ -93,14 +94,14 @@ export const CartProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Error adding to cart: ", error);
-      toast.error(error.response.data.message);
+      toast.error(error.response.message);
     }
   };
 
   const removeFromCart = async(id) => {
     try {
       const response = await removeFromCartAPI(id);
-      const { data, success, message } = response.data;
+      const { data, success, message } = response;
       console.log(data);
       if (success) {
         toast.success(message);
@@ -110,14 +111,14 @@ export const CartProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Error adding to cart: ", error);
-      toast.error(error.response.data.message);
+      toast.error(error.response.message);
     }
   }
 
   const updateQuantity = async(id, quantity) =>{
     try {
       const response = await updateCartAPI(id, quantity);
-      const { data, success, message } = response.data;
+      const { data, success, message } = response;
       console.log(data);
       if (success) {
         toast.success(message);
@@ -130,7 +131,7 @@ export const CartProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Error adding to cart: ", error);
-      toast.error(error.response.data.message);
+      toast.error(error.response.message);
     }
   }
     

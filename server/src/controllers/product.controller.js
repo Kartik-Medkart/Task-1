@@ -9,7 +9,7 @@ import {
 } from "../utils/cloudinary.js";
 
 
-const { Product, ProductTags, Tag, Category } = models;
+const { Product, ProductImages, ProductTags, Tag, Category } = models;
 
 // Create a new product
 export const createProduct = asyncHandler(async (req, res) => {

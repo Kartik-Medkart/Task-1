@@ -18,7 +18,7 @@ const ProductsPage = () => {
       try {
         const limit = 10;
         const response = await getProducts(page, limit);
-        const { data } = response.data;
+        const { data } = response;
         console.log("Products: ", data.products);
         setProducts(data.products);
       } catch (error) {
@@ -32,7 +32,7 @@ const ProductsPage = () => {
   // const searchProducts = async (searchQuery) => {
   //   try {
   //     const response = await searchProducts(searchQuery);
-  //     const { data } = response.data;
+  //     const { data } = response;
   //     console.log("Products: ", data.products);
   //     setProducts(data.products);
   //   } catch (error) {

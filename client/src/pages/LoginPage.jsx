@@ -6,7 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { loginUserAPI } from "../services/api"; // Import the loginUserAPI function
 
 const LoginPage = () => {
-  const { login } = useAuth();
+  const { setLocalUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
@@ -21,7 +21,7 @@ const LoginPage = () => {
   const handleSubmit = async (values, { setSubmitting, setErrors }) => {
     try {
       const response = await loginUserAPI(values);
-      const {data} = response.data;
+      const {data} = response;
       setLocalUser(data.user);
       navigate(from, { replace: true });
     } catch (error) {

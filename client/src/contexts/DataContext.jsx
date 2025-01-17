@@ -16,8 +16,8 @@ export const DataProvider = ({ children }) => {
           getTagsAPI(),
           getCategoriesAPI(),
         ]);
-        setTags(tagsResponse.data.tags);
-        setCategories(categoriesResponse.data.categories);
+        setTags(tagsResponse.tags);
+        setCategories(categoriesResponse.categories);
       } catch (error) {
         console.error('Error fetching data: ', error);
       } finally {

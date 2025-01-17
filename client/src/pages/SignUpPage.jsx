@@ -30,19 +30,19 @@ const SignUpForm = () => {
   const handleSubmit = async (values, { setSubmitting, setErrors }) => {
     try {
       const response = await registerUserAPI(values); // Use the registerUserAPI function
-      console.log(response.data);
+      console.log(response);
       navigate("/login"); // Redirect to login page after successful registration
     } catch (error) {
       //   console.error(error);
       if (
         error.response &&
-        error.response.data &&
-        error.response.data.message
+        error.response &&
+        error.response.message
       ) {
-        if (error.response.data.message.includes("username already exists")) {
+        if (error.response.message.includes("username already exists")) {
           setErrors({ username: "Username already exists" });
         } else if (
-          error.response.data.message.includes("email already exists")
+          error.response.message.includes("email already exists")
         ) {
           setErrors({ email: "User With email already exists" });
         }

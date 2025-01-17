@@ -44,7 +44,7 @@ const AdminPage = () => {
     const { email, ...userData } = values;
     try {
       const response = await updateUserAPI(userData);
-      const { data, success } = response.data;
+      const { data, success } = response;
       if (success) {
         setLocalUser(user);
         toast.success("Profile updated successfully");

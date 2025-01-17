@@ -12,7 +12,7 @@ const TagForm = ({ onClose }) => {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const response = await createTagAPI(values);
-      const { data, success, message } = response.data;
+      const { data, success, message } = response;
         if(success){
             toast.success(message);
         }
