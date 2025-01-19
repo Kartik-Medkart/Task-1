@@ -14,20 +14,17 @@ import { verifyJWT, restrict } from "../middlewares/auth.middleware.js";
 // Route to get all tags
 router.get("/", getAllTags);
 
-router.use(verifyJWT);
-router.use(restrict(["admin"]))
-
 // Route to create a new tag
-router.post("/", createTag);
+router.post("/", verifyJWT, restrict(["admin"]), createTag);
 
 
 // Route to get a single tag by ID
-router.get("/:id", getTagById);
+router.get("/:id", verifyJWT, restrict(["admin"]), getTagById);
 
 // Route to update a tag by ID
-router.put("/:id", updateTag);
+router.put("/:id", verifyJWT, restrict(["admin"]), updateTag);
 
 // Route to delete a tag by ID
-router.delete("/:id", deleteTag);
+router.delete("/:id", verifyJWT, restrict(["admin"]), deleteTag);
 
 export default router;

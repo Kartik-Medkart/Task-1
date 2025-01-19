@@ -20,7 +20,27 @@ router.post(
   "/",
   verifyJWT,
   restrict(["admin"]),
-  upload.fields([{ name: "images", maxCount: 4 }]),
+  (req, res, next) => {
+    upload.fields([{ name: "images", maxCount: 4 }])(req, res, function (err) {
+      if (
+        err instanceof multer.MulterError &&
+        err.code === "LIMIT_UNEXPECTED_FILE"
+      ) {
+        return res
+          .status(400)
+          .json(
+            new ApiResponse(
+              400,
+              null,
+              "Too many files uploaded. Maximum 4 images are allowed."
+            )
+          );
+      } else if (err) {
+        return res.status(400).json(new ApiResponse(400, null, err.message));
+      }
+      next();
+    });
+  },
   createProductAPI
 );
 router.get("/", getAllProducts);

@@ -13,18 +13,16 @@ const router = express.Router();
 // Route to get all categories
 router.get("/", getAllCategories);
 
-router.use(verifyJWT);
-router.use(restrict(["admin"]));
 // Route to create a new category
-router.post("/", createCategory);
+router.post("/", verifyJWT, restrict(["admin"]), createCategory);
 
 // Route to get a single category by ID
-router.get("/:id", getCategoryById);
+router.get("/:id", verifyJWT, restrict(["admin"]), getCategoryById);
 
 // Route to update a category by ID
-router.put("/:id", updateCategory);
+router.put("/:id", verifyJWT, restrict(["admin"]), updateCategory);
 
 // Route to delete a category by ID
-router.delete("/:id", deleteCategory);
+router.delete("/:id", verifyJWT, restrict(["admin"]), deleteCategory);
 
 export default router;

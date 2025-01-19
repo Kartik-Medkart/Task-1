@@ -7,10 +7,9 @@ const router = Router();
 router.post('/', createUser);
 router.post('/login', loginUser);
 
-router.use(verifyJWT);
-router.get('/me', getUserProfile);
-router.post('/logout', logoutUser);
-router.post('/update', updateUser);
-router.post('/reset-password', updatePassword);
+router.get('/me', verifyJWT, getUserProfile);
+router.post('/logout', verifyJWT, logoutUser);
+router.post('/update', verifyJWT, updateUser);
+router.post('/reset-password', verifyJWT, updatePassword);
 
 export default router;

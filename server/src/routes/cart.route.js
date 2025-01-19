@@ -7,18 +7,15 @@ import { verifyJWT } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-// Protect all routes after this middleware
-router.use(verifyJWT);
-
 // Get Cart Details
-router.get('/', getCart);
+router.get('/', verifyJWT, getCart);
 
-router.post('/add', addToCart);
+router.post('/add', verifyJWT, addToCart);
 
 // Add/Update Item in Cart
-router.put('/update', updateQuantity);
+router.put('/update', verifyJWT, updateQuantity);
 
 // Remove Item from Cart
-router.delete('/remove/:cart_item_id', removeFromCart);
+router.delete('/remove/:cart_item_id', verifyJWT, removeFromCart);
 
 export default router;

@@ -5,23 +5,22 @@ import { restrict, verifyJWT } from '../middlewares/auth.middleware.js';
 const router = express.Router();
 
 // Protect all routes after this middleware
-router.use(verifyJWT);
 
 // Create a new order
-router.post('/', createOrder);
+router.post('/', verifyJWT, createOrder);
 
 // Get all orders
-router.get('/', getOrdersByUser);
+router.get('/', verifyJWT, getOrdersByUser);
 
-router.get('/all', restrict(["admin"]), getAllOrders);
+router.get('/all', verifyJWT, restrict(["admin"]), getAllOrders);
 
 // Get order by ID
-router.get('/:order_id', getOrderById);
+router.get('/:order_id', verifyJWT, getOrderById);
 
 // Update order
-router.put('/:order_id', restrict(["admin"]), updateOrderStatus);
+router.put('/:order_id', verifyJWT, restrict(["admin"]), updateOrderStatus);
 
 // Delete order
-router.delete('/:order_id', restrict(["admin"]), deleteOrder);
+router.delete('/:order_id', verifyJWT, restrict(["admin"]), deleteOrder);
 
 export default router;

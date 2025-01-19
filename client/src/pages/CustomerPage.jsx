@@ -15,7 +15,7 @@ const CustomerPage = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
-  const {user, logout} = useAuth();
+  const {user, setLocalUser, logout} = useAuth();
 
   const initialValues = {
     firstName: user?.firstName || "",
@@ -139,6 +139,7 @@ const CustomerPage = () => {
       const response = await updateUserAPI(userData);
       const {data, success} = response;
       if(success){
+        setLocalUser(data);
         toast.success('Profile updated successfully');
       }
     }

@@ -48,27 +48,23 @@ export const createUser = asyncHandler(async (req, res) => {
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const newUser = await User.create(
-    {
-      username,
-      email,
-      password: passwordHash,
-      firstName,
-      lastName,
-      phone, address, city, state,
-      role,
-    },
-    {
-      fields: [
-        "username",
-        "email",
-        "password",
-        "firstName",
-        "lastName",
-        "role",
-      ],
-    }
-  );
+  let newUser;
+  try {
+    newUser = await User.create(
+      {
+        username,
+        email,
+        password: passwordHash,
+        firstName,
+        lastName,
+        phone, address, city, state,
+        role,
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(new ApiResponse(500, null, "Internal Server Error"));
+  }
 
   return res
     .status(201)
@@ -95,10 +91,12 @@ export const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Email and password are required");
   }
 
-  const user = await User.findOne({
-    where: { email: validatedEmail },
-      exclude: ["password"],
+  let user = await User.findOne({
+    where: { email: validatedEmail }
     });
+  
+  user = user.toJSON();
+  user.password = undefined;
 
   if (!user) {
     res.status(401).json(new ApiResponse(401, null, "user Not Found"));

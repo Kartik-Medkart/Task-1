@@ -25,22 +25,59 @@ const ProductsPage = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  // useEffect(() => {
-  //   const fetchProducts = async () => {
-  //     try {
-  //       const response = await getProducts(currentPage, itemsPerPage);
-  //       const { data } = response;
-  //       console.log("Products: ", data.products);
-  //       setProducts(data.products);
-  //       setTotalPages(data.totalPages);
-  //       setTotalProducts(data.totalItems);
-  //     } catch (error) {
-  //       console.error("Error fetching products: ", error);
-  //     }
-  //   };
+  useEffect(() => {
+    const sortedProducts = [...products];
+    const sorting = sort.split("-");
+    if (sorting[0] === "price") {
+      if (sorting[1] === "asc") {
+        sortedProducts.sort((a, b) => Number(a.price) - Number(b.price));
+      } else {
+        sortedProducts.sort((a, b) => Number(b.price) - Number(a.price));
+      }
+    } else {
+      if (sorting[1] === "asc") {
+        sortedProducts.sort((a, b) =>
+          a.product_name.localeCompare(b.product_name)
+        );
+      } else {
+        sortedProducts.sort((a, b) =>
+          b.product_name.localeCompare(a.product_name)
+        );
+      }
+    }
+    setProducts(sortedProducts);
+  }, [sort]);
 
-  //   fetchProducts();
-  // }, [currentPage]);
+  const handleAddToCart = (index) => {
+    addToCart(products[index]);
+  };
+
+  useEffect(() => {
+    const searchProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await searchProductsAPI(
+          search,
+          selectedCategory,
+          selectedTags,
+          currentPage,
+          itemsPerPage
+        );
+        const { data } = response;
+        setProducts(data.products);
+        setTotalPages(data.totalPages);
+        setTotalProducts(data.totalItems);
+      } catch (error) {
+        console.error("Error fetching products: ", error);
+      }
+      setLoading(false);
+    };
+    searchProducts();
+  }, [search, selectedCategory, selectedTags, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedCategory, selectedTags]);
 
   const PaginationComponent = () => (
     <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 mt-5 sm:px-6">
@@ -110,59 +147,6 @@ const ProductsPage = () => {
       </div>
     </div>
   );
-
-  useEffect(() => {
-    const sortedProducts = [...products];
-    const sorting = sort.split("-");
-    if (sorting[0] === "price") {
-      if (sorting[1] === "asc") {
-        sortedProducts.sort((a, b) => Number(a.price) - Number(b.price));
-      } else {
-        sortedProducts.sort((a, b) => Number(b.price) - Number(a.price));
-      }
-    } else {
-      if (sorting[1] === "asc") {
-        sortedProducts.sort((a, b) =>
-          a.product_name.localeCompare(b.product_name)
-        );
-      } else {
-        sortedProducts.sort((a, b) =>
-          b.product_name.localeCompare(a.product_name)
-        );
-      }
-    }
-    setProducts(sortedProducts);
-  }, [sort]);
-
-  // let filteredProducts = selectedCategory
-  //   ? products.filter((product) => product.category_id == selectedCategory)
-  //   : products;
-
-  // if (selectedTags.length > 0) {
-  //   filteredProducts = filteredProducts.filter((product) =>
-  //     product?.tags.some((tag) => selectedTags.includes(tag.tag_id))
-  //   );
-  // }
-  useEffect(() => {
-    const searchProducts = async () => {
-      setLoading(true);
-      try {
-        const response = await searchProductsAPI(search, selectedCategory, selectedTags, currentPage, itemsPerPage);
-        const { data } = response;
-        setProducts(data.products);
-        setTotalPages(data.totalPages);
-        setTotalProducts(data.totalItems);
-      } catch (error) {
-        console.error("Error fetching products: ", error);
-      }
-      setLoading(false);
-    };
-    searchProducts();
-  }, [search, selectedCategory, selectedTags, currentPage]);
-  
-  const handleAddToCart = (index) => {
-    addToCart(products[index]);
-  };
 
   return (
     <div className="bg-white">
@@ -266,7 +250,9 @@ const ProductsPage = () => {
                 <div key={product.product_id} className="group">
                   <img
                     alt={product.product_name}
-                    src={product.image.url}
+                    src={
+                      product.image?.url || "https://via.placeholder.com/300"
+                    }
                     className="aspect-square w-full rounded-lg bg-gray-200 object-cover group-hover:opacity-75 xl:aspect-[7/8]"
                   />
                   <h3 className="mt-4 text-sm text-gray-700">
