@@ -25,7 +25,7 @@ const LoginPage = () => {
       setLocalUser(data.user);
       navigate(from, { replace: true });
     } catch (error) {
-      console.error(error);
+      const {data} = error.response.dara;
       setErrors({ submit: "Invalid credentials" });
     } finally {
       setSubmitting(false);

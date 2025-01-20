@@ -67,7 +67,7 @@ const Products = () => {
   };
 
   return (
-    <div className="bg-white">
+    <div className="bg-white rounded-lg shadow-md p-6">
       <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
         <div className="mb-3 flex justify-between items-center">
           <h2 className="text-2xl font-bold">Products</h2>
@@ -119,7 +119,7 @@ const Products = () => {
               <div key={product.product_id} className="group">
                 <img
                   alt={product.product_name}
-                  src={product.image.url}
+                  src={product.image?.url || ""}
                   className="aspect-square w-full rounded-lg bg-gray-200 object-cover group-hover:opacity-75 xl:aspect-[7/8]"
                 />
                 <h3 className="mt-4 text-sm text-gray-700">
@@ -138,7 +138,13 @@ const Products = () => {
               </div>
             ))}
         </div>
-        <PaginationComponent currentPage totalPages totalItems={totalProducts} itemsPerPage setCurrentPage />
+        <PaginationComponent
+          currentPage
+          totalPages={totalPages}
+          totalItems={totalProducts}
+          itemsPerPage
+          setCurrentPage={setCurrentPage}
+        />
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ const PaginationComponent = ({
   totalPages,
   totalItems,
   itemsPerPage,
-  setCurrentPage
+  setCurrentPage,
 }) => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;

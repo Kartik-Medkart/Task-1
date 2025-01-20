@@ -9,9 +9,14 @@ const { Tag, Product } = models;
 export const createTag = asyncHandler(async (req, res) => {
   const { name } = req.body;
 
-  const tag = await Tag.create({ name });
+  let tag = await Tag.findOne({ where: { name } });
+  if(tag){
+    return res.status(400).json(new ApiResponse(400, [], "Tag Already Exists"));
+  }
 
-  res.status(201).json(new ApiResponse(201, tag, "Tag Created Successfully"));
+  const newTag = await Tag.create({ name });
+
+  res.status(201).json(new ApiResponse(201, newTag, "Tag Created Successfully"));
 });
 
 // Get all tags

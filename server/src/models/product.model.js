@@ -10,9 +10,6 @@ export default (sequelize, Sequelize) => {
       product_name: {
         type: Sequelize.STRING,
         allowNull: false,
-        validate: {
-          is: /^[a-zA-Z0-9\s]*$/,
-        },
       },
       ws_code: {
         type: Sequelize.INTEGER,

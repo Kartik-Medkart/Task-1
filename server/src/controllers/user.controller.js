@@ -17,6 +17,28 @@ const validateAndTrimEmail = (email) => {
   return trimmedEmail;
 };
 
+// const checkStrongPassword = (password) => {
+//   const errors = [];
+
+//   if (password.length < 8) {
+//     errors.push("Password should be at least 8 characters long");
+//   }
+//   if (!/[a-z]/.test(password)) {
+//     errors.push("Password should contain at least one lowercase letter");
+//   }
+//   if (!/[A-Z]/.test(password)) {
+//     errors.push("Password should contain at least one uppercase letter");
+//   }
+//   if (!/\d/.test(password)) {
+//     errors.push("Password should contain at least one digit");
+//   }
+//   if (!/[@$!%*?&]/.test(password)) {
+//     errors.push("Password should contain at least one special character (@$!%*?&)");
+//   }
+
+//   return errors.length > 0 ? errors.join(",") : null;
+// }
+
 export const createUser = asyncHandler(async (req, res) => {
   console.log("Create User Controller");
   const {
@@ -28,30 +50,31 @@ export const createUser = asyncHandler(async (req, res) => {
     phone
   } = req.body;
 
+  const validations = {};
+
   if (!username || !email || !password || !phone || !firstName || !lastName) {
     return res
       .status(400)
       .json(
-        new ApiResponse(400, null, "Username, email and password are required")
+        new ApiResponse(400, [], "All Fields are required")
       );
   }
 
   const validatedEmail = validateAndTrimEmail(email);
-  console.log(validatedEmail);
 
   let user = await User.findOne({ where: { username } });
   if (user) {
-    return res
-      .status(409)
-      .json(new ApiResponse(409, null, "username already exists"));
+    validations.username = "Username already exists";
   }
 
   user = await User.findOne({ where: { email: validatedEmail } });
 
   if (user) {
-    return res
-      .status(409)
-      .json(new ApiResponse(409, null, "email already exists"));
+    validations.email = "Email already exists";
+  }
+
+  if (Object.keys(validations).length !== 0) {
+    return res.status(400).json(new ApiResponse(400, validations, "Provide Valid Data"));
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -81,21 +104,24 @@ export const createUser = asyncHandler(async (req, res) => {
 export const loginUser = asyncHandler(async (req, res) => {
   console.log("Login User Controller");
   const { email, password } = req.body;
+  const validations = [];
 
   const validatedEmail = validateAndTrimEmail(email);
 
-  console.log(email, password);
-
-  if (email && !validatedEmail) {
-    res.status(400).json(new ApiResponse(400, null, "Invalid email format"));
-    throw new ApiError(400, "Invalid email format");
+  if (!validatedEmail) {
+    validations["email"] += "E-Mail Required";
   }
 
-  if (!validatedEmail || !password) {
-    res
-      .status(400)
-      .json(new ApiResponse(400, null, "Email and Password are required"));
-    throw new ApiError(400, "Email and password are required");
+  if(!password) {
+    validations["password"] += "Password Required";
+  }
+
+  if (email && !validatedEmail) {
+    validations["email"] += "Invalid Email Format";
+  }
+
+  if (validations.length > 0) {
+    return res.status(400).json(new ApiResponse(400, validations, "Please Provide Valid Email and Password"));
   }
 
   let user = await User.findOne({

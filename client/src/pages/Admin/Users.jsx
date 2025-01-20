@@ -121,7 +121,7 @@ const Users = () => {
   );
 
   return (
-    <div className="bg-white">
+    <div className="bg-white rounded-lg shadow-md p-6">
       <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
         <div className="mb-3 flex justify-between items-center">
           <h2 className="text-2xl font-bold">Users</h2>

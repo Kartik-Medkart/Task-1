@@ -70,6 +70,7 @@ export const createProductAPI = asyncHandler(async (req, res) => {
       category_id
     });
   } catch (error) {
+    console.log(error);
     res
       .status(400)
       .json(
@@ -425,8 +426,6 @@ export const searchProducts = asyncHandler(async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 10;
     const offset = (page - 1) * limit;
 
-    console.log(category_id);
-
     const whereClause = {};
 
     if (product_name) {
@@ -478,7 +477,7 @@ export const searchProducts = asyncHandler(async (req, res) => {
     );
 
     // Return response
-    res.status(200).json(
+    return res.status(200).json(
       new ApiResponse(
         200,
         {

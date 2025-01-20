@@ -23,29 +23,24 @@ const SignUpForm = () => {
       .required("Phone number is required"),
     password: Yup.string()
       .min(8, "Password must be at least 8 characters")
+      .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .matches(/[a-z]/, "Password must contain at least one lowercase letter")
+      .matches(/\d/, "Password must contain at least one number")
+      .matches(/[@$!%*?&]/, "Password must contain at least one special character (@$!%*?&)")
       .required("Password is required"),
   });
 
   // Handle form submission
   const handleSubmit = async (values, { setSubmitting, setErrors }) => {
     try {
-      const response = await registerUserAPI(values); // Use the registerUserAPI function
+      const response = await registerUserAPI(values);
       console.log(response);
-      navigate("/login"); // Redirect to login page after successful registration
+      navigate("/login");
     } catch (error) {
-      //   console.error(error);
-      if (
-        error.response &&
-        error.response &&
-        error.response.message
-      ) {
-        if (error.response.message.includes("username already exists")) {
-          setErrors({ username: "Username already exists" });
-        } else if (
-          error.response.message.includes("email already exists")
-        ) {
-          setErrors({ email: "User With email already exists" });
-        }
+      console.log(error);
+      console.log(error.response.data);
+      if ( error.response.status === 400) {
+        setErrors(error.response.data.data);
       } else {
         setErrors({ submit: "Registration failed. Please try again." });
       }

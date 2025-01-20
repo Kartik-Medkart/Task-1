@@ -24,12 +24,10 @@ api.interceptors.response.use(
           break;
         case 401:
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          if(window.location.pathname !== '/login') window.location.href = '/login';
           toast.error(response?.data?.message || "Unauthorized");
           break;
         case 403:
-          localStorage.removeItem('user');
-          window.location.href = '/login';
           toast.error(response?.data?.message || "Forbidden");
           break;
         case 404:
