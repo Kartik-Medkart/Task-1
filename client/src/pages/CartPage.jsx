@@ -21,8 +21,6 @@ const CartPage = () => {
         if (success) {
           toast.success(message);
           clearCart();
-        } else {
-          toast.error(message);
         }
     } catch (error) {
       console.error("Error placing order: ", error);
@@ -81,7 +79,7 @@ const CartPage = () => {
         
         <div className="flex items-center space-x-4">
           <p className="text-lg font-semibold text-gray-800">
-            ${(item.price * item.quantity).toFixed(2)}
+            Rs {(item.price * item.quantity).toFixed(2)}
           </p>
           <button
             onClick={() => removeFromCart(id)}
@@ -116,7 +114,7 @@ const CartPage = () => {
             <div className="space-y-3 mb-6">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
-                <span>${calculateTotal().toFixed(2)}</span>
+                <span>Rs. {calculateTotal().toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Shipping</span>
@@ -125,7 +123,7 @@ const CartPage = () => {
               <div className="border-t pt-3">
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total</span>
-                  <span>${calculateTotal().toFixed(2)}</span>
+                  <span>Rs. {calculateTotal().toFixed(2)}</span>
                 </div>
               </div>
             </div>

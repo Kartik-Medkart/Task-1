@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import axios from "axios";
+import { ClipLoader } from "react-spinners";
 import { toast } from "react-toastify";
 import { useData } from "../contexts/DataContext";
 import {
@@ -13,6 +13,8 @@ import {
 const ProductEdit = ({ product, onClose }) => {
   const [editingImageIndex, setEditingImageIndex] = useState(null); // Track the image being edited
   const { categories, tags } = useData();
+  const [loading, setLoading] = useState(false);
+  const [isReplaced, setIsReplaced] = useState(false);
 
   const [initialValues, setInitialValues] = useState({
     product_name: product?.product_name || "",
@@ -31,7 +33,7 @@ const ProductEdit = ({ product, onClose }) => {
     price: Yup.number().required("Price is required"),
     package_size: Yup.number().required("Package size is required"),
     category_id: Yup.number().required("Category is required"),
-    tags: Yup.array().of(Yup.string()).required("At least one tag is required"),
+    tags: Yup.array().of(Yup.string()),
     images: Yup.array()
       .of(Yup.mixed())
       .required("At least one image is required"),
@@ -41,6 +43,7 @@ const ProductEdit = ({ product, onClose }) => {
     const files = Array.from(e.target.files);
 
     if (editingImageIndex !== null) {
+      setLoading(true);
       const formData = new FormData();
       formData.append("currentImageId", product.images[editingImageIndex].id);
       formData.append("image", files[0]);
@@ -53,32 +56,40 @@ const ProductEdit = ({ product, onClose }) => {
       const updatedImages = [...values.images];
       updatedImages[editingImageIndex] = files[0];
       setFieldValue("images", updatedImages);
+      setLoading(false);
       setEditingImageIndex(null); // Reset the editing index
     } else {
-      // Replace all images
+      setIsReplaced(true);
       setFieldValue("images", files);
     }
   };
 
   const handleRemoveImage = (setFieldValue, values, index) => {
+    setIsReplaced(true);
     const updatedImages = values.images.filter((_, i) => i !== index);
     setFieldValue("images", updatedImages);
   };
 
   const saveImages = async (images) => {
-    try {
-      const formData = new FormData();
-      formData.append("WsCode", product.ws_code);
-      images.forEach((image) => formData.append("images", image));
+    setLoading(true);
+    if (isReplaced) {
+      try {
+        const formData = new FormData();
+        formData.append("WsCode", product.ws_code);
+        images.forEach((image) => formData.append("images", image));
 
-      const response = await updateProductImagesAPI(formData);
-      const { data, status, message } = response;
-
-      if (status) toast.success("Images updated successfully");
-    } catch (error) {
-      console.error("Error updating images:", error);
-      toast.error("Error updating images");
+        const response = await updateProductImagesAPI(formData);
+        const { data, success, message } = response;
+        if (success) {
+          toast.success(message || "Images updated successfully");
+          onClose();
+        }
+      } catch (error) {
+        console.error("Error updating images:", error);
+      }
+      setIsReplaced(false);
     }
+    setLoading(false);
   };
 
   const saveDetails = async (values) => {
@@ -89,21 +100,40 @@ const ProductEdit = ({ product, onClose }) => {
       if (success) toast.success("Product details updated successfully");
     } catch (error) {
       console.error("Error updating product details:", error);
-      toast.error("Error updating product details");
     }
+  };
+
+  const hasFieldChanged = (fieldName, initialValues, currentValues) => {
+    return initialValues[fieldName] !== currentValues[fieldName];
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-xl">
-        <h2 className="text-2xl font-bold mb-4">Edit Product</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold mb-4">Edit Product</h2>
+          <h3 className="text-lg font-semibold mb-4">
+            WS Code: {product.ws_code}
+          </h3>
+        </div>
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={(values, { setSubmitting }) => {
-            saveDetails(values);
-            onClose();
+            const fieldsChanged = Object.keys(initialValues).filter((field) =>
+              hasFieldChanged(field, initialValues, values)
+            );
+
+            if (fieldsChanged.length > 0) {
+              if (fieldsChanged.includes("images") && setIsReplaced) {
+                saveImages(values.images);
+              }
+              saveDetails(values);
+            } else {
+              toast.info("No changes detected");
+            }
             setSubmitting(false);
+            onClose();
           }}
         >
           {({ values, setFieldValue, isSubmitting }) => (
@@ -195,12 +225,12 @@ const ProductEdit = ({ product, onClose }) => {
                   ))}
                 </select>
                 <div className="flex flex-wrap mt-2">
-                  {values.tags.map((tag) => (
+                  {values.tags.map((tag, index) => (
                     <div
-                      key={tag}
+                      key={index}
                       className="mr-2 mb-2 px-4 py-2 bg-blue-500 text-white rounded flex items-center"
                     >
-                      {tag}
+                      <span>{tags.find((t) => t.tag_id == tag).name}</span>
                       <button
                         type="button"
                         className="ml-2 text-white"
@@ -233,29 +263,39 @@ const ProductEdit = ({ product, onClose }) => {
                 <div className="flex flex-wrap mt-2">
                   {values.images.map((image, index) => (
                     <div key={index} className="relative mr-2 mb-2">
-                      <img
-                        src={
-                          image?.url ? image.url : URL.createObjectURL(image)
-                        }
-                        alt="Product"
-                        className="w-32 h-32 object-cover rounded"
-                      />
-                      <button
-                        type="button"
-                        className="absolute top-0 right-0 mt-1 mr-1 text-white bg-red-500 rounded-full p-1"
-                        onClick={() =>
-                          handleRemoveImage(setFieldValue, values, index)
-                        }
-                      >
-                        &times;
-                      </button>
-                      <button
-                        type="button"
-                        className="absolute top-0 left-0 mt-1 ml-1 text-white bg-blue-500 rounded-full p-1"
-                        onClick={() => setEditingImageIndex(index)}
-                      >
-                        ✎
-                      </button>
+                      {editingImageIndex == index && loading ? (
+                        <div className="w-32 h-32 object-cover rounded inset-0 bg-black bg-black-500 flex items-center justify-center">
+                          <ClipLoader color="#ffffff" size={25} />
+                        </div>
+                      ) : (
+                        <>
+                          <img
+                            src={
+                              image?.url
+                                ? image.url
+                                : URL.createObjectURL(image)
+                            }
+                            alt="Product"
+                            className="w-32 h-32 object-cover rounded"
+                          />
+                          <button
+                            type="button"
+                            className="absolute top-0 right-0 mt-1 mr-1 text-white bg-red-500 rounded-full p-1"
+                            onClick={() =>
+                              handleRemoveImage(setFieldValue, values, index)
+                            }
+                          >
+                            &times;
+                          </button>
+                          <button
+                            type="button"
+                            className="absolute top-0 left-0 mt-1 ml-1 text-white bg-blue-500 rounded-full p-1"
+                            onClick={() => setEditingImageIndex(index)}
+                          >
+                            ✎
+                          </button>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -266,13 +306,6 @@ const ProductEdit = ({ product, onClose }) => {
                 />
               </div>
               <div className="flex justify-between mt-4">
-                <button
-                  type="button"
-                  onClick={() => saveImages(values.images)}
-                  className="p-2 bg-green-500 text-white rounded hover:bg-green-700"
-                >
-                  Save Images
-                </button>
                 <button
                   type="button"
                   onClick={() => onClose()}

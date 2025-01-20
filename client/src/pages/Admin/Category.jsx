@@ -5,6 +5,8 @@ import { getCategoriesAPI } from "../../services/api"; // Assume this API call i
 const Category = () => {
   const [showForm, setShowForm] = useState(false);
   const [category, setcategory] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
 
   useEffect(() => {
     const fetchcategory = async () => {
@@ -17,7 +19,7 @@ const Category = () => {
     };
 
     fetchcategory();
-  }, []);
+  }, [showForm]);
 
   return (
     <div className="bg-white">
@@ -32,7 +34,7 @@ const Category = () => {
           </button>
         </div>
 
-        {showForm && <CategoryForm onClose={() => setShowForm(false)} />}
+        {showForm && <CategoryForm category={selectedCategory} onClose={() => {setSelectedCategory(null); setShowForm(false)}} />}
         <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
           {Array.isArray(category) ?
             category.map((category) => (
@@ -40,10 +42,16 @@ const Category = () => {
                 key={category.category_id}
                 id={category.category_id}
                 className="group p-4 border border-gray-300 rounded-lg"
+                onClick={() => { 
+                  console.log(category);
+                  setShowForm(true)
+                  setSelectedCategory(category)
+                }}
               >
                 <h3 className="text-lg font-medium text-gray-700">
                   {category.name}
                 </h3>
+                
               </div>
             )) : (
             <p className="text-lg font-medium text-gray-700">No category Found</p>

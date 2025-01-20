@@ -36,50 +36,14 @@ const Orders = () => {
   const [editingOrder, setEditingOrder] = useState(null);
   const itemsPerPage = 5;
 
-  const [Orders, setOrders] = useState([
-    {
-      order_id: "ORD001",
-      user: {
-        username: "johnDoe",
-        email: "john.doe@example.com",
-        phone: "1234567890",
-        address: "ABCD-4",
-        city: "Ahemdabad",
-        state: "Gujarat",
-      },
-      status: "pending",
-      shipping_date: "2024-01-15",
-      delivered_date: null,
-      cart: {
-        amount: 105,
-        cart_id: 1,
-        items: [
-          {
-            cart_item_id: 4,
-            name: "Sample Product 1",
-            image:
-              "http://res.cloudinary.com/hackathon-purpose/image/upload/v1736919897/ca3x8eq0jqnsd9zjecyg.jpg",
-            quantity: 2,
-            price: "35",
-          },
-          {
-            cart_item_id: 5,
-            name: "Sample Product 2",
-            image:
-              "http://res.cloudinary.com/hackathon-purpose/image/upload/v1736922109/elh2l4rbvoyjlwo2sn8y.jpg",
-            quantity: 1,
-            price: "35",
-          },
-        ],
-      },
-    },
-  ]);
+  const [Orders, setOrders] = useState([]);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await getAllOrdersAPI();
         const { data } = response;
+        data.orders.sort((a, b) => b.order_id - a.order_id);
         setOrders(data.orders);
       } catch (error) {
         console.error("Error fetching orders: ", error);
@@ -112,9 +76,6 @@ const Orders = () => {
       }
     } catch (error) {
       console.error("Error updating order status: ", error);
-      toast.error(
-        error?.response?.data?.message || "Error updating order status"
-      );
     }
   };
 

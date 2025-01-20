@@ -5,6 +5,7 @@ import { getTagsAPI } from "../../services/api"; // Assume this API call is defi
 const Tags = () => {
   const [showForm, setShowForm] = useState(false);
   const [tags, setTags] = useState([]);
+  const [selectedTag, setSelectedTag] = useState(null);
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -17,7 +18,7 @@ const Tags = () => {
     };
 
     fetchTags();
-  }, []);
+  }, [showForm]);
 
   return (
     <div className="bg-white">
@@ -32,13 +33,17 @@ const Tags = () => {
           </button>
         </div>
 
-        {showForm && <TagForm onClose={() => setShowForm(false)} />}
+        {showForm && <TagForm tag={selectedTag} onClose={() => {setSelectedTag(null); setShowForm(false)}} />}
         <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
           {Array.isArray(tags) ?
             tags.map((tag) => (
               <div
                 key={tag.tag_id}
                 className="group p-4 border border-gray-300 rounded-lg"
+                onClick={() => {
+                  setShowForm(true)
+                  setSelectedTag(tag)
+                }}
               >
                 <h3 className="text-lg font-medium text-gray-700">
                   {tag.name}

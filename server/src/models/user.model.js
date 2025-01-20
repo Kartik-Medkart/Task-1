@@ -22,7 +22,7 @@ export default (sequelize, Sequelize) => {
       firstName: Sequelize.STRING,
       lastName: Sequelize.STRING,
       role: {
-        type: Sequelize.ENUM('admin', 'customer'),
+        type: Sequelize.ENUM('admin', 'customer', 'superadmin'),
         defaultValue: 'customer',
       },
       address: Sequelize.STRING,

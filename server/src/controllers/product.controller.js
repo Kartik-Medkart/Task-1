@@ -27,7 +27,9 @@ export const createProductAPI = asyncHandler(async (req, res) => {
       .json(new ApiResponse(400, null, "Please provide all required fields"));
   }
 
-  if (!isNumber(ws_code) && ws_code < 0) {
+  console.log(ws_code);
+
+  if (!isNumber(ws_code) || ws_code < 0) {
     res
       .status(400)
       .json(new ApiResponse(400, null, "WS Code must be a positive number"));
@@ -316,6 +318,7 @@ export const updateProductImage = asyncHandler(async (req, res) => {
   const currentImageUrl = image.url;
   const newImageUrl = await uploadOnCloudinary(newImage.path);
   image.url = newImageUrl.secure_url;
+  await image.save();
 
   await deleteFromCloudinary(currentImageUrl);
 
@@ -417,27 +420,27 @@ export const deleteProduct = asyncHandler(async (req, res) => {
 
 export const searchProducts = asyncHandler(async (req, res) => {
   try {
-    const { product_name, ws_code, category_id, tags } = req.query;
+    const { product_name, category_id, tags } = req.query;
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const offset = (page - 1) * limit;
 
-    console.log(tags);
+    console.log(category_id);
 
     const whereClause = {};
 
-    if (product_name || ws_code) {
+    if (product_name) {
       whereClause[Op.or] = [];
       if (product_name) {
         whereClause[Op.or].push({ product_name: { [Op.iLike]: `%${product_name}%` } });
       }
-      if (ws_code) {
-        whereClause[Op.or].push({ ws_code });
+      if(isNumber(product_name)){
+        whereClause[Op.or].push({ ws_code: { [Op.eq]: product_name } });
       }
     }
 
     if (category_id) {
-      whereClause.category_id = category_id;
+      whereClause.category_id = { [Op.eq]: category_id };
     }
 
     if (tags) {
@@ -492,7 +495,7 @@ export const searchProducts = asyncHandler(async (req, res) => {
   }
 });
 
-export const getProductsByCategory = async (req, res) => {
+export const getProductsByCategory = asyncHandler(async (req, res) => {
   try {
     const categories = await Category.findAll();
     const productsByCategory = await Promise.all(
@@ -513,4 +516,22 @@ export const getProductsByCategory = async (req, res) => {
     console.error('Error fetching products by category:', error);
     res.status(500).json({ error: 'An error occurred while fetching products by category' });
   }
-};
+});
+
+export const getImagestByProductId = asyncHandler(async (req, res) => {
+  const { product_id } = req.params;
+
+  const images = await ProductImages.findAll({
+    where: { product_id },
+  });
+
+  let tags = await ProductTags.findAll({
+    where: { product_id },
+  });
+
+  tags = tags.map((tag) => tag.tag_id);
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, {images, tags}, "Images Retrieved Successfully"));
+});

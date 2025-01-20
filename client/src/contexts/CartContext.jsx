@@ -61,13 +61,10 @@ export const CartProvider = ({ children }) => {
             type: "SET_CART",
             payload: { cartItems: data?.items || [], totalPrice: data?.amount || 0 },
           });
-        } else {
-          toast.error(message);
         }
       } catch (error) {
         logout();
         console.error("Error adding to cart: ", error);
-        toast.error(error?.response?.data?.message || "Error fetching cart");
       }
     };
     fetchCart();
@@ -89,12 +86,9 @@ export const CartProvider = ({ children }) => {
       if (success) {
         toast.success(message);
         dispatch({ type: "ADD_TO_CART", payload: { item: data.item } });
-      } else {
-        toast.error(message);
       }
     } catch (error) {
       console.error("Error adding to cart: ", error);
-      toast.error(error.response.message);
     }
   };
 
@@ -106,12 +100,9 @@ export const CartProvider = ({ children }) => {
       if (success) {
         toast.success(message);
         dispatch({ type: "REMOVE_FROM_CART", payload: id });
-      } else {
-        toast.error(message);
       }
     } catch (error) {
       console.error("Error adding to cart: ", error);
-      toast.error(error.response.message);
     }
   }
 
@@ -126,12 +117,9 @@ export const CartProvider = ({ children }) => {
           type: "UPDATE_QUANTITY",
           payload: { id, updateFn: (prev) => quantity },
         });
-      } else {
-        toast.error(message);
       }
     } catch (error) {
       console.error("Error adding to cart: ", error);
-      toast.error(error.response.message);
     }
   }
     

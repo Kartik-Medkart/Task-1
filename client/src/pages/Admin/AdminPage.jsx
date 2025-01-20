@@ -6,12 +6,20 @@ import { useAuth } from "../../contexts/AuthContext";
 import { updateUserAPI } from "../../services/api";
 import { toast } from "react-toastify";
 import { FiTrash2 } from "react-icons/fi";
-import { FaMinus, FaPlus, FaUser, FaBox, FaTimes } from "react-icons/fa";
+import {
+  UserIcon,
+  ShoppingCartIcon,
+  ArchiveBoxIcon,
+  UsersIcon,
+  TagIcon,
+  ListBulletIcon,
+} from '@heroicons/react/24/outline';
 
 import Orders from "./Orders";
 import Products from "./Products";
 import Tags from "./Tags";
 import Category from "./Category";
+import Users from "./Users";
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("profile");
@@ -30,27 +38,31 @@ const AdminPage = () => {
   const tabs = [
     {
       name: "profile",
-      icon: <FaUser />,
+      icon: <UserIcon className={`h-5 w-5 ${activeTab === "profile" ? "text-gray-500" : "text-white-500"}`} />,
     },
     {
       name: "orders",
-      icon: <FaBox />,
+      icon: <ShoppingCartIcon className={`h-5 w-5 ${activeTab === "orders" ? "text-gray-500" : "text-white-500"}`} />,
     },
     {
       name: "products",
-      icon: <FaBox />,
+      icon: <ArchiveBoxIcon className={`h-5 w-5 ${activeTab === "products" ? "text-gray-500" : "text-white-500"}`} />,
+    },
+    {
+      name: "users",
+      icon: <UsersIcon className={`h-5 w-5 ${activeTab === "users" ? "text-gray-500" : "text-white-500"}`} />,
     },
     {
       name: "category",
-      icon: <i className="fa fa-list-alt" aria-hidden="true"></i>,
+      icon: <ListBulletIcon className={`h-5 w-5 ${activeTab === "category" ? "text-gray-500" : "text-white-500"}`} />,
     },
     {
       name: "tags",
-      icon: <i className="fa fa-tag" aria-hidden="true"></i>,
+      icon: <TagIcon className={`h-5 w-5 ${activeTab === "tags" ? "text-gray-500" : "text-white-500"}`} />,
     },
     {
       name: "logout",
-      icon: <i className="fad fa-sign-out" aria-hidden="true"></i>,
+      icon: "",
     },
   ];
 
@@ -79,7 +91,6 @@ const AdminPage = () => {
       }
     } catch (error) {
       console.error("Error updating profile: ", error);
-      toast.error("Error updating profile");
     }
     setSubmitting(false);
   };
@@ -252,6 +263,7 @@ const AdminPage = () => {
           {activeTab === "products" && <Products />}
           {activeTab === "tags" && <Tags />}
           {activeTab === "category" && <Category />}
+          {activeTab === "users" && <Users />}
           {activeTab === "logout" && logout()}
         </div>
       </div>

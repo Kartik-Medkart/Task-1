@@ -74,7 +74,7 @@ const CustomerPage = () => {
               </div>
               <div>
                 <p className="text-gray-600">Total Amount</p>
-                <p className="font-semibold">${order.total_amount}</p>
+                <p className="font-semibold">Rs. {order.total_amount}</p>
               </div>
               <div>
                 <p className="text-gray-600">Shipping Date</p>
@@ -109,7 +109,7 @@ const CustomerPage = () => {
                   <div className="flex-1">
                     <h4 className="font-semibold">{item.name}</h4>
                     <p className="text-gray-600">Quantity: {item.quantity}</p>
-                    <p className="text-gray-600">Price: ${item.price}</p>
+                    <p className="text-gray-600">Price: Rs. {item.price}</p>
                   </div>
                   <p className="font-semibold">
                     ${Number(item.price) * item.quantity}
@@ -145,7 +145,6 @@ const CustomerPage = () => {
     }
     catch(error){
       console.error('Error updating profile: ', error);
-      toast.error('Error updating profile');
     }
     setSubmitting(false);
   };
@@ -292,7 +291,7 @@ const CustomerPage = () => {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold">${order.total_amount}</p>
+                  <p className="font-semibold">Rs. {order.total_amount}</p>
                   <span
                     className={`inline-block px-3 py-1 rounded-full text-sm ${
                       order.order_status === "confirmed"

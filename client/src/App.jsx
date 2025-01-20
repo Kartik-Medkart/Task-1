@@ -28,7 +28,7 @@ const ProtectedRoute = ({ children, role }) => {
     return <Navigate to="/login" state={{ from: location }} />;
   }
 
-  if (role && user.role !== role) {
+  if (role && !role.includes(user.role)) {
     return <Navigate to="/" />;
   }
 
@@ -50,7 +50,7 @@ const App = () => {
           path="/cart"
           element={
             <ProtectedRoute 
-              // role="customer"
+            role={["customer", "admin", "superadmin"]}
               >
               <CartPage />
             </ProtectedRoute>
@@ -63,7 +63,7 @@ const App = () => {
           path="/profile"
           element={
             <ProtectedRoute
-              // role="customer"
+              role={["customer"]}
             >
               <CustomerPage />
             </ProtectedRoute>
@@ -74,7 +74,7 @@ const App = () => {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute role="admin">
+            <ProtectedRoute role={["admin", "superadmin"]}>
               <AdminPage />
             </ProtectedRoute>
           }

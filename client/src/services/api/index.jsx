@@ -14,10 +14,6 @@ api.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    if (error.config && error.config.headers['Bypass-Interceptor']) {
-      return Promise.reject(error);
-    }
-
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     const { response } = error;
     if (response) {
@@ -28,9 +24,12 @@ api.interceptors.response.use(
           break;
         case 401:
           localStorage.removeItem('user');
+          window.location.href = '/login';
           toast.error(response?.data?.message || "Unauthorized");
           break;
         case 403:
+          localStorage.removeItem('user');
+          window.location.href = '/login';
           toast.error(response?.data?.message || "Forbidden");
           break;
         case 404:
@@ -61,11 +60,19 @@ export const logoutUserAPI = () =>
   api.post("/user/logout");
 
 
+export const searchUsersAPI = (search, selectedRole, page=1,limit=10) => api.get(`/user/search`, {
+  params: { name: search, role: selectedRole, page, limit },
+});
+
+export const updateUserRoleAPI = (id, role) => api.put(`/user/${id}`, { role });
+// export const deleteUserAPI = (id) => api.delete(`/user/${id}`);
+
+
 // Product Api Calls
 
-export const getProducts = (page=1,limit=10) => api.get(`/product?page=${page}&limit=${limit}`);
+export const getProductsAPI = (page=1,limit=10) => api.get(`/product?page=${page}&limit=${limit}`);
 export const searchProductsAPI = (search, selectedCategory, selectedTags, currentPage, itemsPerPage) => api.get(`/product/search`, {
-  params: { product_name: search, category: selectedCategory, tags: selectedTags, page: currentPage, limit: itemsPerPage },
+  params: { product_name: search, category_id: selectedCategory, tags: selectedTags, page: currentPage, limit: itemsPerPage },
 });
 
 // Cart Api Calls
@@ -91,10 +98,12 @@ export const getProductAPI = (id) => api.get(`/product/${id}`);
 export const updateProductAPI = (id, data) => api.put(`/product/${id}`, data);   // data => product_name, price, package_size
 export const updateProductImageAPI = (data) => api.post(`/product/update-image`, data);  //  data => currentImageId , image as flle
 export const updateProductImagesAPI = (data) => api.post(`/product/update-images/`, data);  // data => images as file array
+export const getProductImagesTagsAPI = (id) => api.get(`/product/${id}/images`);
 
 export const getCategoriesAPI = () => api.get("/category");
-export const createCategoryAPI = (category) => api.post("/category", category);
-export const updateCategoryAPI = (category, id) => api.put(`/category/${id}`, category);
+export const createCategoryAPI = (category) => api.post("/category", {name: category});
+export const updateCategoryAPI = (category, id) => api.put(`/category/${id}`, {name: category});
 
 export const getTagsAPI = () => api.get("/tag");
-export const createTagAPI = (tag) => api.post("/tag", tag);
+export const createTagAPI = (tag) => api.post("/tag", {name: tag});
+export const updateTagAPI = (tag, id) => api.put(`/tag/${id}`, {name: tag});

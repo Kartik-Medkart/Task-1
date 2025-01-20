@@ -12,15 +12,15 @@ router.post('/', verifyJWT, createOrder);
 // Get all orders
 router.get('/', verifyJWT, getOrdersByUser);
 
-router.get('/all', verifyJWT, restrict(["admin"]), getAllOrders);
+router.get('/all', verifyJWT, restrict(["admin", "superadmin"]), getAllOrders);
 
 // Get order by ID
 router.get('/:order_id', verifyJWT, getOrderById);
 
 // Update order
-router.put('/:order_id', verifyJWT, restrict(["admin"]), updateOrderStatus);
+router.put('/:order_id', verifyJWT, restrict(["admin", "superadmin"]), updateOrderStatus);
 
 // Delete order
-router.delete('/:order_id', verifyJWT, restrict(["admin"]), deleteOrder);
+router.delete('/:order_id', verifyJWT, restrict(["admin", "superadmin"]), deleteOrder);
 
 export default router;

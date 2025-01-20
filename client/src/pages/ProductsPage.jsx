@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ClipLoader } from "react-spinners";
-import { getProducts, searchProductsAPI } from "../services/api";
+import { getProductsAPI, searchProductsAPI } from "../services/api";
 import { useCart } from "../contexts/CartContext";
 import { useData } from "../contexts/DataContext";
+import ProductModal from "../components/ProductModal";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -21,6 +22,8 @@ const ProductsPage = () => {
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedTags, setSelectedTags] = useState([]);
+
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -55,6 +58,7 @@ const ProductsPage = () => {
   useEffect(() => {
     const searchProducts = async () => {
       setLoading(true);
+      console.log("Search Product Called..!");
       try {
         const response = await searchProductsAPI(
           search,
@@ -225,26 +229,53 @@ const ProductsPage = () => {
           <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
             {products?.length == 0 ? (
               <div className="text-center">
+                <div className="flex flex-col h-96">
                 <h2 className="text-2xl font-bold">
                   No Products Found : {search}
                 </h2>
-                {selectedCategory && <span> selectedCategory </span>}
-                {selectedTags.length > 0 && (
-                  <span> selectedTags: {selectedTags.join(", ")} </span>
-                )}
-                {selectedCategory ||
-                  (selectedTags.length == 0 && (
-                    <span
-                      onClick={() => {
-                        setSelectedCategory(null);
-                        setSelectedTags([]);
-                      }}
-                    >
+                <div>
+                  {" "}
+                  {selectedCategory && (
+                    <span>
                       {" "}
-                      Reset Filters{" "}
+                      Selected Category:{" "}
+                      {
+                        categories.find((category) => {
+                          return category.category_id == selectedCategory;
+                        }).name
+                      }
                     </span>
-                  ))}
+                  )}{" "}
+                </div>
+                <div>
+                  {selectedTags.length > 0 && (
+                    <span>
+                      {" "}
+                      Selected Tags:{" "}
+                      {selectedTags
+                        .map((selectedTag) => {
+                          return tags.find((tag) => {
+                            return tag.tag_id == selectedTag;
+                          }).name;
+                        })
+                        .join(", ")}{" "}
+                    </span>
+                  )}
+                </div>
+                {(selectedCategory || selectedTags.length > 0) && (
+                  <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"  
+                    onClick={() => {
+                      setSelectedCategory(null);
+                      setSelectedTags([]);
+                    }}
+                  >
+                    {" "}
+                    Reset Filters{" "}
+                  </button>
+                )}
               </div>
+                </div>
             ) : (
               products.map((product, index) => (
                 <div key={product.product_id} className="group">
@@ -254,11 +285,18 @@ const ProductsPage = () => {
                       product.image?.url || "https://via.placeholder.com/300"
                     }
                     className="aspect-square w-full rounded-lg bg-gray-200 object-cover group-hover:opacity-75 xl:aspect-[7/8]"
+                    onClick={() => setSelectedProduct(product)}
                   />
-                  <h3 className="mt-4 text-sm text-gray-700">
+                  <h3
+                    className="mt-4 text-sm text-gray-700"
+                    onClick={() => setSelectedProduct(product)}
+                  >
                     {product.product_name}
                   </h3>
-                  <p className="mt-1 text-lg font-medium text-gray-900">
+                  <p
+                    className="mt-1 text-lg font-medium text-gray-900"
+                    onClick={() => setSelectedProduct(product)}
+                  >
                     Rs. {product.price}
                   </p>
                   <button
@@ -272,6 +310,13 @@ const ProductsPage = () => {
               ))
             )}
           </div>
+        )}
+
+        {selectedProduct && (
+          <ProductModal
+            product={selectedProduct}
+            onClose={() => setSelectedProduct(null)}
+          />
         )}
 
         {loading && (

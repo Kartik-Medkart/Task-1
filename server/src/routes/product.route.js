@@ -8,6 +8,7 @@ import {
   updateProductImage,
   updateProductImages,
   searchProducts,
+  getImagestByProductId
 } from "../controllers/product.controller.js";
 import multer from "multer";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -19,9 +20,9 @@ const router = Router();
 router.post(
   "/",
   verifyJWT,
-  restrict(["admin"]),
+  restrict(["admin", "superadmin"]),
   (req, res, next) => {
-    upload.fields([{ name: "images", maxCount: 4 }])(req, res, function (err) {
+    upload.fields([{ name: "images" }])(req, res, function (err) {
       if (
         err instanceof multer.MulterError &&
         err.code === "LIMIT_UNEXPECTED_FILE"
@@ -47,11 +48,12 @@ router.get("/", getAllProducts);
 router.get("/search", searchProducts);
 
 router.get("/:WsCode", getProductByWsCode);
+router.get("/:product_id/images", getImagestByProductId);
 
 router.post(
   "/update-image",
   verifyJWT,
-  restrict(["admin"]),
+  restrict(["admin", "superadmin"]),
   upload.single("image"),
   updateProductImage
 );
@@ -59,7 +61,7 @@ router.post(
 router.post(
   "/update-images",
   verifyJWT,
-  restrict(["admin"]),
+  restrict(["admin", "superadmin"]),
   (req, res, next) => {
     upload.fields([{ name: "images", maxCount: 4 }])(req, res, function (err) {
       if (
@@ -84,8 +86,8 @@ router.post(
   updateProductImages
 );
 
-router.put("/:WsCode", verifyJWT, restrict(["admin"]), updateProduct);
+router.put("/:WsCode", verifyJWT, restrict(["admin","superadmin"]), updateProduct);
 
-router.delete("/:WsCode", verifyJWT, restrict(["admin"]), deleteProduct);
+router.delete("/:WsCode", verifyJWT, restrict(["admin", "superadmin"]), deleteProduct);
 
 export default router;

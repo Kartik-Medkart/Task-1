@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { createUser, loginUser, logoutUser , getUserProfile, updateUser, updatePassword} from "../controllers/user.controller.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { createUser, loginUser, logoutUser , getUserProfile, updateUser, updatePassword, searchUsers, updateUserRole, deleteUser} from "../controllers/user.controller.js";
+import { restrict, verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -11,5 +11,9 @@ router.get('/me', verifyJWT, getUserProfile);
 router.post('/logout', verifyJWT, logoutUser);
 router.post('/update', verifyJWT, updateUser);
 router.post('/reset-password', verifyJWT, updatePassword);
+
+router.get('/search', verifyJWT, restrict(["admin","superadmin"]), searchUsers);
+router.put('/:id', verifyJWT, restrict(["superadmin"]), updateUserRole);
+router.delete('/:id', verifyJWT, restrict(["admin","superadmin"]), deleteUser);
 
 export default router;

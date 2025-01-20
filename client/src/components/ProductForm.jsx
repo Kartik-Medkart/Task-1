@@ -3,6 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { createProductAPI } from "../services/api";
+import ConfirmationModal from "./ConfirmationModal";
 import { useData } from "../contexts/DataContext";
 
 const ProductForm = ({ onClose }) => {
@@ -15,9 +16,10 @@ const ProductForm = ({ onClose }) => {
     category_id: "",
     tags: [],
   };
-  const [selectedTags, setSelectedTags] = useState([]);
+  // const [selectedTags, setSelectedTags] = useState([]);
 
   const { categories, tags } = useData();
+  const [isModelOpen, setIsModelOpen] = useState(false);
 
   const validationSchema = Yup.object({
     product_name: Yup.string().required("Product name is required"),
@@ -27,7 +29,10 @@ const ProductForm = ({ onClose }) => {
       .positive("Price must be positive"),
     package_size: Yup.string().required("Package size is required"),
     category_id: Yup.string().required("Category is required"),
-    tags: Yup.array().min(1, "At least one tag is required"),
+    tags: Yup.array(),
+    images: Yup.array()
+      .max(4, "You can only upload up to 4 images")
+      .required("At least one image is required"),
   });
 
   const handleSubmit = async (values, { setSubmitting }) => {
@@ -38,11 +43,11 @@ const ProductForm = ({ onClose }) => {
     formData.append("price", values.price);
     formData.append("package_size", values.package_size);
     formData.append("category_id", values.category_id);
-  
+
     values.images.forEach((imageObj) => {
       formData.append(`images`, imageObj);
     });
-  
+
     values.tags.forEach((tag, index) => {
       formData.append(`tags[${index}]`, tag);
     });
@@ -57,12 +62,11 @@ const ProductForm = ({ onClose }) => {
       }
     } catch (error) {
       console.error("Error adding product: ", error);
-      toast.error("Error adding product");
     }
   };
 
   const handleImageUpload = (e, setFieldValue, values) => {
-    console.log("e.target.files: ", e.target.files); 
+    console.log("e.target.files: ", e.target.files);
     const files = Array.from(e.target.files);
     console.log("current file: ", files);
     setFieldValue("images", [...values.images, ...files]);
@@ -72,7 +76,23 @@ const ProductForm = ({ onClose }) => {
     const updatedImages = values.images.filter((_, i) => i !== index);
     setFieldValue("images", updatedImages);
   };
-  
+
+  const hasFieldChanged = (fieldName, initialValues, currentValues) => {
+    if(fieldName === "images" || fieldName === "tags") {
+      return JSON.stringify(initialValues[fieldName]) !== JSON.stringify(currentValues[fieldName]);
+    }
+    return initialValues[fieldName] !== currentValues[fieldName];
+  };
+
+  const handleCancel = () => {
+    setIsModelOpen(false);
+  };
+
+  const handleConfirm = () => {
+    setIsModelOpen(false);
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-xl">
@@ -111,7 +131,7 @@ const ProductForm = ({ onClose }) => {
                 </label>
                 <Field
                   name="ws_code"
-                  type="text"
+                  type="number"
                   className="mt-1 block w-full border border-gray-300 rounded-sm p-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-md"
                 />
                 <ErrorMessage
@@ -242,6 +262,7 @@ const ProductForm = ({ onClose }) => {
                       setFieldValue("tags", [...values.tags, selectedTag]);
                     }
                   }}
+                  value="Select Tags"
                 >
                   <option value="">Select tags</option>
                   {tags.map((tag) => (
@@ -251,12 +272,12 @@ const ProductForm = ({ onClose }) => {
                   ))}
                 </select>
                 <div className="flex flex-wrap mt-2">
-                  {values.tags.map((tag) => (
+                  {values.tags.map((tag, index) => (
                     <div
-                      key={tag}
+                      key={index}
                       className="mr-2 mb-2 px-4 py-2 bg-blue-500 text-white rounded flex items-center"
                     >
-                      {tag}
+                      <span>{tags.find((t) => t.tag_id == tag).name}</span>
                       <button
                         type="button"
                         className="ml-2 text-white"
@@ -282,7 +303,16 @@ const ProductForm = ({ onClose }) => {
                 <button
                   type="button"
                   className="mr-4 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                  onClick={onClose}
+                  onClick={() => {
+                    const fieldsChanged = Object.keys(initialValues).filter(
+                      (field) => hasFieldChanged(field, initialValues, values)
+                    );
+                    if (fieldsChanged.length > 0) {
+                      setIsModelOpen(true);
+                    } else {
+                      onClose();
+                    }
+                  }}
                 >
                   Cancel
                 </button>
@@ -296,6 +326,13 @@ const ProductForm = ({ onClose }) => {
             </Form>
           )}
         </Formik>
+
+        <ConfirmationModal
+          isOpen={isModelOpen}
+          message={"Are You Sure You Want to Close Without Saving ?"}
+          onConfirm={handleConfirm}
+          onCancel={handleCancel}
+        />
       </div>
     </div>
   );
