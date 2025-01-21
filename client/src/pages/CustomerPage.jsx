@@ -128,9 +128,9 @@ const CustomerPage = () => {
     lastName: Yup.string().required('Last name is required'),
     email: Yup.string().email('Invalid email address').required('Email is required'),
     phone : Yup.string().matches(/^[0-9]{10}$/, 'Phone number must be exactly 10 digits').required('Phone number is required'),
-    address: Yup.string().required('Address is required'),
-    city: Yup.string().required('City is required'),
-    state: Yup.string().required('State is required'),
+    address: Yup.string(),
+    city: Yup.string(),
+    state: Yup.string(),
   });
 
   const handleSubmit = async(values, { setSubmitting }) => {

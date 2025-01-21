@@ -14,7 +14,7 @@ const validateAndTrimEmail = (email) => {
   if (!emailRegex.test(trimmedEmail)) {
     return null;
   }
-  return trimmedEmail;
+  return trimmedEmail.toLowerCase();
 };
 
 // const checkStrongPassword = (password) => {
@@ -41,7 +41,7 @@ const validateAndTrimEmail = (email) => {
 
 export const createUser = asyncHandler(async (req, res) => {
   console.log("Create User Controller");
-  const {
+  let {
     username,
     firstName,
     lastName,
@@ -51,6 +51,7 @@ export const createUser = asyncHandler(async (req, res) => {
   } = req.body;
 
   const validations = {};
+  username = username.trim().toLowerCase();
 
   if (!username || !email || !password || !phone || !firstName || !lastName) {
     return res
@@ -59,6 +60,7 @@ export const createUser = asyncHandler(async (req, res) => {
         new ApiResponse(400, [], "All Fields are required")
       );
   }
+
 
   const validatedEmail = validateAndTrimEmail(email);
 
@@ -103,7 +105,7 @@ export const createUser = asyncHandler(async (req, res) => {
 
 export const loginUser = asyncHandler(async (req, res) => {
   console.log("Login User Controller");
-  const { email, password } = req.body;
+  let { email, password } = req.body;
   const validations = [];
 
   const validatedEmail = validateAndTrimEmail(email);
@@ -129,7 +131,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   });
 
   if (!user) {
-    res.status(401).json(new ApiResponse(401, null, "user Not Found"));
+    res.status(401).json(new ApiResponse(401, null, "User Not Found"));
     throw new ApiError(401, "user Not Found");
   }
 

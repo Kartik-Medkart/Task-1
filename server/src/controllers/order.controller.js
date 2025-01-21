@@ -2,6 +2,7 @@ import { models } from "../db/index.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
+import {Op} from 'sequelize'
 
 const { Order, Cart, CartItem, User } = models;
 
@@ -124,6 +125,9 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     const offset = (page - 1) * limit;
   
     let { count, rows: orders } = await Order.findAndCountAll({
+      where: {user_id: {
+        [Op.ne]: req.user.user_id
+      }},
       limit: Number(limit),
       offset: Number(offset),
       include: [
@@ -141,6 +145,11 @@ export const getAllOrders = asyncHandler(async (req, res) => {
           model: User,
           as: "user",
           attributes: ["username", "email", "phone", "address", "city", "state"],
+          where: {
+            role: {
+              [Op.ne]: req.user.role
+            }
+          }
         }
       ],
     });

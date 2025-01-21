@@ -14,7 +14,9 @@ const SignUpForm = () => {
   const validationSchema = Yup.object().shape({
     firstName: Yup.string().required("First name is required"),
     lastName: Yup.string().required("Last name is required"),
-    username: Yup.string().required("Username is required"),
+    username: Yup.string()
+      .transform((value) => value.toLowerCase())
+      .required('Username is required'),
     email: Yup.string()
       .email("Invalid email address")
       .required("Email is required"),
@@ -47,6 +49,19 @@ const SignUpForm = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const LowercaseField = ({ field, form, ...props }) => {
+    return (
+      <input
+        {...field}
+        {...props}
+        onChange={(e) => {
+          const { value } = e.target;
+          form.setFieldValue(field.name, value.toLowerCase());
+        }}
+      />
+    );
   };
 
   return (
@@ -122,6 +137,7 @@ const SignUpForm = () => {
                   type="text"
                   placeholder="Choose a username"
                   className="w-full p-2 border rounded mt-1"
+                  component={LowercaseField}
                 />
                 <ErrorMessage
                   name="username"
