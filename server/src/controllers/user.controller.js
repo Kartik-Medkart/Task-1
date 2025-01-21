@@ -293,7 +293,7 @@ export const searchUsers = asyncHandler(async (req, res) => {
       })
     );
 
-    console.log(usersWithOrderCount);
+    // console.log(usersWithOrderCount);
 
     const totalPages = Math.ceil(totalItems / limit);
     res.status(200).json(

@@ -62,7 +62,7 @@ const Products = () => {
       if (success) {
         setProducts((prevProducts) => prevProducts.map((product) => {
           if (product.ws_code === ws_code) {
-            return { ...product, is_deleted: true };
+            return { ...product, is_Deleted: true };
           }
           return product;
         }));

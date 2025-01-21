@@ -97,7 +97,8 @@ const AdminPage = () => {
 
   const ProfileContent = () => (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-semibold mb-6">Profile Information</h2>
+      <h2 className="text-2xl font-semibold mb-2">Profile Information</h2>
+      <h3 className="text-md font-bold mb-3"> Role: {user.role}</h3>
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}

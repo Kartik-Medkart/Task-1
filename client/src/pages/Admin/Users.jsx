@@ -201,6 +201,7 @@ const Users = () => {
             onClose={() => setSelectedUser(null)}
           />
         )}
+        
         <PaginationComponent
           currentPage
           totalPages

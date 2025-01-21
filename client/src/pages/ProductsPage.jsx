@@ -9,7 +9,7 @@ const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("price-asc");
-  const [page, setPage] = useState(1);
+  // const [page, setPage] = useState(1);
   const { addToCart } = useCart();
   const { categories, tags } = useData();
 
