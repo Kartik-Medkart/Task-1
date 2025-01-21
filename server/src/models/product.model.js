@@ -41,6 +41,10 @@ export default (sequelize, Sequelize) => {
         },
         onDelete: "CASCADE",
       },
+      is_Deleted: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
     },
     {
       tableName: "Product",

@@ -67,7 +67,7 @@ export const createProductAPI = asyncHandler(async (req, res) => {
       ws_code,
       price,
       package_size,
-      category_id
+      category_id,
     });
   } catch (error) {
     console.log(error);
@@ -157,45 +157,84 @@ export const createProductAPI = asyncHandler(async (req, res) => {
 
 // Get all products
 export const getAllProducts = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  try {
+    const { product_name, category_id, tags } = req.query;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const offset = (page - 1) * limit;
 
-  const offset = (page - 1) * limit;
+    const whereClause = {};
 
-  let products = await Product.findAndCountAll({
-    limit: Number(limit),
-    offset: Number(offset),
-  });
+    if (product_name) {
+      whereClause[Op.or] = [];
+      if (product_name) {
+        whereClause[Op.or].push({
+          product_name: { [Op.iLike]: `%${product_name}%` },
+        });
+      }
+      if (isNumber(product_name)) {
+        whereClause[Op.or].push({ ws_code: { [Op.eq]: product_name } });
+      }
+    }
 
-  const totalItems = products.count;
-  products = products.rows;
-  const totalPages = Math.ceil(totalItems / limit);
+    if (category_id) {
+      whereClause.category_id = { [Op.eq]: category_id };
+    }
 
-  products = products.map((product) => product.toJSON());
+    if (tags) {
+      let Tag_Ids = Array.isArray(tags) ? tags : [tags];
+      const productTags = await ProductTags.findAll({
+        where: { tag_id: { [Op.in]: Tag_Ids } },
+        attributes: ["product_id"],
+      });
 
-  for (let product of products) {
-    let image = await ProductImages.findOne({
-      where: { product_id: product.product_id },
+      const productIds = [
+        ...new Set(productTags.map((productTag) => productTag.product_id)),
+      ];
+
+      whereClause.product_id = { [Op.in]: productIds };
+    }
+
+    whereClause.is_Deleted = { [Op.eq]: false };
+
+    const { rows: products, count: totalItems } = await Product.findAndCountAll({
+      where: whereClause,
+      limit,
+      offset,
     });
-    let tags = await ProductTags.findAll({
-      where: { product_id: product.product_id },
-    });
-    image = { id: image?.image_id || "", url: image?.url || "" };
-    product.tags = tags.map((tag) => tag.tag_id);
-    product.image = image;
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const productsWithImages = await Promise.all(
+      products.map(async (product) => {
+        const image = await ProductImages.findOne({
+          where: { product_id: product.product_id },
+          attributes: ["image_id", "url"],
+        });
+
+        return {
+          ...product.toJSON(),
+          image: image ? { id: image.image_id, url: image.url } : null,
+        };
+      })
+    );
+
+    // Return response
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          products: productsWithImages,
+          totalItems,
+          totalPages,
+          currentPage: page,
+        },
+        "Products Retrieved Successfully"
+      )
+    );
+  } catch (error) {
+    console.error("Error retrieving products:", error);
   }
-
-  res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        products,
-        totalItems,
-        totalPages,
-        currentPage: Number(page),
-      },
-      "Products Retrieved Successfully"
-    )
-  );
 });
 
 // Get a single product by ID
@@ -218,7 +257,7 @@ export const getProductByWsCode = asyncHandler(async (req, res) => {
 
   let Tags = await ProductTags.findAll({
     where: { product_id: product.product_id },
-  })
+  });
 
   Tags = Tags.map((tag) => tag.tag_id);
 
@@ -252,7 +291,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
     where: { product_id: product.product_id },
   });
 
-  for(let tag of currentTags){
+  for (let tag of currentTags) {
     await tag.destroy();
   }
 
@@ -376,7 +415,7 @@ export const updateProductImages = asyncHandler(async (req, res) => {
     })
   );
 
-  for(let image of images){
+  for (let image of images) {
     await image.destroy();
   }
 
@@ -402,17 +441,19 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     throw new ApiError("Product Not Found");
   }
 
-  const currentImageUrls = await ProductImages.findAll({
-    where: { product_id: product.product_id },
-  });
+  // const currentImageUrls = await ProductImages.findAll({
+  //   where: { product_id: product.product_id },
+  // });
 
-  await Promise.all(
-    currentImageUrls.map(async (image) => {
-      await deleteFromCloudinary(image.url);
-    })
-  );
+  // await Promise.all(
+  //   currentImageUrls.map(async (image) => {
+  //     await deleteFromCloudinary(image.url);
+  //   })
+  // );
 
-  await product.destroy();
+  // await product.destroy();
+  product.is_Deleted = true;
+  await product.save();
 
   res
     .status(200)
@@ -431,9 +472,11 @@ export const searchProducts = asyncHandler(async (req, res) => {
     if (product_name) {
       whereClause[Op.or] = [];
       if (product_name) {
-        whereClause[Op.or].push({ product_name: { [Op.iLike]: `%${product_name}%` } });
+        whereClause[Op.or].push({
+          product_name: { [Op.iLike]: `%${product_name}%` },
+        });
       }
-      if(isNumber(product_name)){
+      if (isNumber(product_name)) {
         whereClause[Op.or].push({ ws_code: { [Op.eq]: product_name } });
       }
     }
@@ -448,9 +491,11 @@ export const searchProducts = asyncHandler(async (req, res) => {
         where: { tag_id: { [Op.in]: Tag_Ids } },
         attributes: ["product_id"],
       });
-  
-      const productIds = [...new Set(productTags.map((productTag) => productTag.product_id))];
-  
+
+      const productIds = [
+        ...new Set(productTags.map((productTag) => productTag.product_id)),
+      ];
+
       whereClause.product_id = { [Op.in]: productIds };
     }
 
@@ -510,10 +555,20 @@ export const getProductsByCategory = asyncHandler(async (req, res) => {
       })
     );
 
-    res.status(200).json(new ApiResponse(200, productsByCategory, "Products by category retrieved successfully"));
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          productsByCategory,
+          "Products by category retrieved successfully"
+        )
+      );
   } catch (error) {
-    console.error('Error fetching products by category:', error);
-    res.status(500).json({ error: 'An error occurred while fetching products by category' });
+    console.error("Error fetching products by category:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching products by category" });
   }
 });
 
@@ -532,5 +587,7 @@ export const getImagestByProductId = asyncHandler(async (req, res) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, {images, tags}, "Images Retrieved Successfully"));
+    .json(
+      new ApiResponse(200, { images, tags }, "Images Retrieved Successfully")
+    );
 });

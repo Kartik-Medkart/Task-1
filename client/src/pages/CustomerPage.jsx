@@ -74,7 +74,7 @@ const CustomerPage = () => {
               </div>
               <div>
                 <p className="text-gray-600">Total Amount</p>
-                <p className="font-semibold">Rs. {order.total_amount}</p>
+                <p className="font-semibold">Rs. {parseFloat(order.cart.amount).toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-gray-600">Shipping Date</p>
@@ -291,7 +291,7 @@ const CustomerPage = () => {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold">Rs. {order.total_amount}</p>
+                  <p className="font-semibold">Rs. {parseFloat(order.cart.amount).toFixed(2)}</p>
                   <span
                     className={`inline-block px-3 py-1 rounded-full text-sm ${
                       order.order_status === "confirmed"

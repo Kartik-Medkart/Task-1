@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ClipLoader } from "react-spinners";
-import { getProductsAPI, searchProductsAPI } from "../services/api";
+import { getProductsAPI } from "../services/api";
 import { useCart } from "../contexts/CartContext";
 import { useData } from "../contexts/DataContext";
 import ProductModal from "../components/ProductModal";
@@ -60,7 +60,7 @@ const ProductsPage = () => {
       setLoading(true);
       console.log("Search Product Called..!");
       try {
-        const response = await searchProductsAPI(
+        const response = await getProductsAPI(
           search,
           selectedCategory,
           selectedTags,

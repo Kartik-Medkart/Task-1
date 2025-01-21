@@ -125,9 +125,6 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     const offset = (page - 1) * limit;
   
     let { count, rows: orders } = await Order.findAndCountAll({
-      where: {user_id: {
-        [Op.ne]: req.user.user_id
-      }},
       limit: Number(limit),
       offset: Number(offset),
       include: [

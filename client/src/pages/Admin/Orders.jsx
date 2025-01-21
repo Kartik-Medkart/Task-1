@@ -180,7 +180,7 @@ const Orders = () => {
             <h3 className="font-semibold mb-2">Order Information</h3>
             <p>
               <span className="font-medium">Total Amount:</span> $
-              {order.cart.amount}
+              {order.cart.amount.toFixed(2)}
             </p>
             <p>
               <span className="font-medium">Status:</span>
@@ -289,7 +289,7 @@ const Orders = () => {
                 className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 cursor-pointer"
                 onClick={() => setSelectedOrder(order)}
               >
-                ${order.cart.amount}
+                ${order.cart.amount.toFixed(2)}
               </td>
               <td
                 className="px-6 py-4 whitespace-nowrap cursor-pointer"

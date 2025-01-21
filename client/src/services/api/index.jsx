@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 
 const api = axios.create({
   baseURL: SERVER_URL,
-  withCredentials: true,
+  withCredentials: true,     
 });
 
 api.interceptors.response.use(
@@ -67,8 +67,9 @@ export const updateUserRoleAPI = (id, role) => api.put(`/user/${id}`, { role });
 
 
 // Product Api Calls
-
-export const getProductsAPI = (page=1,limit=10) => api.get(`/product?page=${page}&limit=${limit}`);
+export const getProductsAPI = (search, selectedCategory, selectedTags, currentPage, itemsPerPage) => api.get(`/product/`, {
+  params: { product_name: search, category_id: selectedCategory, tags: selectedTags, page: currentPage, limit: itemsPerPage },
+});
 export const searchProductsAPI = (search, selectedCategory, selectedTags, currentPage, itemsPerPage) => api.get(`/product/search`, {
   params: { product_name: search, category_id: selectedCategory, tags: selectedTags, page: currentPage, limit: itemsPerPage },
 });
@@ -97,6 +98,8 @@ export const updateProductAPI = (id, data) => api.put(`/product/${id}`, data);  
 export const updateProductImageAPI = (data) => api.post(`/product/update-image`, data);  //  data => currentImageId , image as flle
 export const updateProductImagesAPI = (data) => api.post(`/product/update-images/`, data);  // data => images as file array
 export const getProductImagesTagsAPI = (id) => api.get(`/product/${id}/images`);
+export const deleteProductAPI = (id) => api.delete(`/product/${id}`);
+
 
 export const getCategoriesAPI = () => api.get("/category");
 export const createCategoryAPI = (category) => api.post("/category", {name: category});

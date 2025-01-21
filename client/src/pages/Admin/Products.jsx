@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { searchProductsAPI, getProductAPI } from "../../services/api";
+import { searchProductsAPI, getProductAPI, deleteProductAPI } from "../../services/api";
 import ProductForm from "../../components/ProductForm";
 import ProductEdit from "../../components/ProductEdit";
 import { useData } from "../../contexts/DataContext";
 import PaginationComponent from "../../components/PaginationComponent";
+import { TrashIcon } from "@heroicons/react/24/outline";
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { toast } from "react-toastify";
+import ConfirmationModal from "../../components/ConfirmationModal";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -19,6 +24,8 @@ const Products = () => {
   const itemsPerPage = 8;
 
   const { categories } = useData();
+
+  const [isModalOpen,setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -47,6 +54,24 @@ const Products = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [search, selectedCategory]);
+
+  const handleDelete = async (ws_code) => {
+    try {
+      const response = await deleteProductAPI(ws_code);
+      const { message, success } = response;
+      if (success) {
+        setProducts((prevProducts) => prevProducts.map((product) => {
+          if (product.ws_code === ws_code) {
+            return { ...product, is_deleted: true };
+          }
+          return product;
+        }));
+        toast.success(message);
+      }
+    } catch (error) {
+      console.error("Error deleting product: ", error);
+    }
+  };
 
   const editProduct = async (product) => {
     const fetchProduct = async (ws_code) => {
@@ -128,6 +153,7 @@ const Products = () => {
                 <p className="mt-1 text-lg font-medium text-gray-900">
                   Rs. {product.price}
                 </p>
+                {product.is_Deleted ? <div className="text-red-500">Product Deleted</div> : <TrashIcon className="w-6 h-6 text-red-500 hover:text-red-700 cursor-pointer" onClick={()=> {setSelectedProduct(product); setIsModalOpen(true);}}/>}
                 <button
                   className="mt-2 px-4 py-2 bg-blue-500 text-white rounded flex items-center"
                   onClick={() => editProduct(product)}
@@ -138,6 +164,19 @@ const Products = () => {
               </div>
             ))}
         </div>
+        <ConfirmationModal 
+          isOpen={isModalOpen}
+          message={"Are you sure you want to delete this product?"}
+          onConfirm={() => {
+            handleDelete(selectedProduct.ws_code)
+            setSelectedProduct(null);
+            setIsModalOpen(false);
+          }}
+          onCancel={() => {
+            setSelectedProduct(null);
+            setIsModalOpen(false);
+          }}
+        />
         <PaginationComponent
           currentPage
           totalPages={totalPages}
