@@ -1,13 +1,13 @@
 import express from 'express';
 import { createOrder, getOrdersByUser, getOrderById, deleteOrder, updateOrderStatus, getAllOrders } from '../controllers/order.controller.js';
-import { restrict, verifyJWT } from '../middlewares/auth.middleware.js';
+import { restrict, verifyJWT, verifyUser } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
 // Protect all routes after this middleware
 
 // Create a new order
-router.post('/', verifyJWT, createOrder);
+router.post('/', verifyJWT, verifyUser, createOrder);
 
 // Get all orders
 router.get('/', verifyJWT, getOrdersByUser);

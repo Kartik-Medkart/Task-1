@@ -25,10 +25,6 @@ export default (sequelize, Sequelize) => {
         allowNull: false,
         defaultValue: 'pending',
       },
-      total_amount: {
-        type: Sequelize.DECIMAL,
-        allowNull: false,
-      },
       shipping_date: {
         type : Sequelize.DATE,
         defaultValue: Sequelize.NOW

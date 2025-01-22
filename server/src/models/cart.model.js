@@ -20,7 +20,7 @@ export default (sequelize, Sequelize) => {
         defaultValue: 0.00,
         get() {
           const value = this.getDataValue('amount');
-          return parseFloat(value); // Convert the string to a number
+          return parseFloat(value).toFixed(2);
         },
       },
     },

@@ -25,18 +25,6 @@ export default (sequelize, Sequelize) => {
           key: "product_id",
         },
       },
-      name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      price: {
-        type: DataTypes.DECIMAL,
-        allowNull: false,
-      },
-      image: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
       quantity: {
         type: DataTypes.INTEGER,
         allowNull: false,
