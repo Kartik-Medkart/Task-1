@@ -178,10 +178,10 @@ const Products = () => {
           }}
         />
         <PaginationComponent
-          currentPage
+          currentPage={currentPage}
           totalPages={totalPages}
           totalItems={totalProducts}
-          itemsPerPage
+          itemsPerPage={itemsPerPage}
           setCurrentPage={setCurrentPage}
         />
       </div>

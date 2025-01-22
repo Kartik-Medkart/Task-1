@@ -32,6 +32,19 @@ const LoginPage = () => {
     }
   };
 
+  const LowercaseField = ({ field, form, ...props }) => {
+    return (
+      <input
+        {...field}
+        {...props}
+        onChange={(e) => {
+          const { value } = e.target;
+          form.setFieldValue(field.name, value.toLowerCase());
+        }}
+      />
+    );
+  };
+
   return (
     <div className="flex justify-center py-10 bg-gray-100">
       <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
@@ -49,6 +62,7 @@ const LoginPage = () => {
                   type="email"
                   placeholder="Email"
                   className="w-full p-2 border rounded"
+                  component={LowercaseField}
                 />
                 <ErrorMessage name="email" component="div" className="text-red-500 text-sm" />
               </div>

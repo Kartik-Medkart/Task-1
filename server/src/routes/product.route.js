@@ -1,19 +1,20 @@
 import { Router } from "express";
 import {
-  createProductAPI,
+  createProduct,
   getAllProducts,
   updateProduct,
   deleteProduct,
-  getProductByWsCode,
+  // getProductByWsCode,
   updateProductImage,
   updateProductImages,
   searchProducts,
-  getImagestByProductId
+  getImagesTagsByProductId
 } from "../controllers/product.controller.js";
 import multer from "multer";
 import { upload } from "../middlewares/multer.middleware.js";
 import { restrict, verifyJWT } from "../middlewares/auth.middleware.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import {validateProduct} from "../middlewares/validate.middleware.js";
 
 const router = Router();
 
@@ -42,13 +43,14 @@ router.post(
       next();
     });
   },
-  createProductAPI
+  validateProduct,
+  createProduct
 );
 router.get("/", getAllProducts);
 router.get("/search", searchProducts);
 
-router.get("/:WsCode", getProductByWsCode);
-router.get("/:product_id/images", getImagestByProductId);
+// router.get("/:WsCode", getProductByWsCode);
+router.get("/:product_id/images", getImagesTagsByProductId);
 
 router.post(
   "/update-image",

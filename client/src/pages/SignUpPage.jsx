@@ -159,6 +159,7 @@ const SignUpForm = () => {
                   type="email"
                   placeholder="Enter your email"
                   className="w-full p-2 border rounded mt-1"
+                  component={LowercaseField}
                 />
                 <ErrorMessage
                   name="email"

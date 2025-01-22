@@ -32,10 +32,6 @@ export default (sequelize, Sequelize) => {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      isVerified: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false
-      },
       cart_id: {
         type: Sequelize.INTEGER,
         references: {

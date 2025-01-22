@@ -236,7 +236,7 @@ const CustomerPage = () => {
                 component="div"
                 className="text-red-500 text-sm"
               />
-              {user?.isVerified ? (
+              {/* {user?.isVerified ? (
                 <p className="text-green-500 text-sm"> Verified </p>
               ) : (
                 <div>
@@ -249,7 +249,7 @@ const CustomerPage = () => {
                   setLocalUser({...user, phone:otpNumber, isVerified: true});
                 }} phone={otpNumber}/>
               </div>
-              )}
+              )} */}
             </div>
 
             <div>
@@ -291,17 +291,13 @@ const CustomerPage = () => {
                 className="text-red-500 text-sm"
               />
             </div>
-            {user.isVerfiied ? (<button
+            <button
                 type="submit"
                 className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Submitting..." : "Sign Up"}
-              </button>) : (
-                <span className="text-red-500 text-sm text-center mt-4 flex justify-center">
-                  Please verify your phone number to update details
-                </span>
-              )}
+              </button>
           </Form>
         )}
       </Formik>
@@ -350,7 +346,6 @@ const CustomerPage = () => {
             </div>
           ))
         )}
-        {console.log(orders)}
         {orders?.length === 0 && (
           <div className="text-center py-8 bg-white rounded-lg shadow-md">
             <p className="text-gray-600 text-lg">No orders found</p>

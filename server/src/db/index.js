@@ -73,6 +73,7 @@ models.Cart.hasMany(models.CartItem, {
 // CartItem and Product
 models.CartItem.belongsTo(models.Product, {
   foreignKey: "product_id",
+  as : "product",
   onDelete: "CASCADE",
 });
 models.Product.hasMany(models.CartItem, { foreignKey: "product_id" });
@@ -99,16 +100,6 @@ models.Tag.belongsToMany(models.Product, {
   foreignKey: "tag_id",
   otherKey: "product_id",
   as: "taggedProducts",
-});
-
-// CartItem and Order
-models.CartItem.belongsTo(models.Order, {
-  foreignKey: "order_id",
-  onDelete: "CASCADE",
-});
-models.Order.hasMany(models.CartItem, {
-  foreignKey: "order_id",
-  as: "items",
 });
 
 models.Product.belongsTo(models.Category, {

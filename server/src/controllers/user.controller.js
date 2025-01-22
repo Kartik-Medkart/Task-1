@@ -52,6 +52,7 @@ export const createUser = asyncHandler(async (req, res) => {
 
   const validations = {};
   username = username.trim().toLowerCase();
+  email = validateAndTrimEmail(email);
 
   if (!username || !email || !password || !phone || !firstName || !lastName) {
     return res
@@ -61,15 +62,13 @@ export const createUser = asyncHandler(async (req, res) => {
       );
   }
 
-
-  const validatedEmail = validateAndTrimEmail(email);
-
   let user = await User.findOne({ where: { username } });
+
   if (user) {
     validations.username = "Username already exists";
   }
 
-  user = await User.findOne({ where: { email: validatedEmail } });
+  user = await User.findOne({ where: { email } });
 
   if (user) {
     validations.email = "Email already exists";
@@ -114,23 +113,23 @@ export const createUser = asyncHandler(async (req, res) => {
 export const loginUser = asyncHandler(async (req, res) => {
   console.log("Login User Controller");
   let { email, password } = req.body;
-  const validations = [];
+  const validations = {};
 
   const validatedEmail = validateAndTrimEmail(email);
 
-  if (!validatedEmail) {
-    validations["email"] += "E-Mail Required";
+  if (!email.trim()) {
+    validations["email"] = "E-Mail Required";
   }
 
   if(!password) {
-    validations["password"] += "Password Required";
+    validations["password"] = "Password Required";
   }
 
   if (email && !validatedEmail) {
-    validations["email"] += "Invalid Email Format";
+    validations["email"] = "Invalid Email Format";
   }
 
-  if (validations.length > 0) {
+  if (Object.keys(validations).length !== 0) {
     return res.status(400).json(new ApiResponse(400, validations, "Please Provide Valid Email and Password"));
   }
 
@@ -140,7 +139,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   if (!user) {
     res.status(401).json(new ApiResponse(401, null, "User Not Found"));
-    throw new ApiError(401, "user Not Found");
+    // throw new ApiError(401, "user Not Found");
   }
 
   if (!(await bcrypt.compare(password, user?.password))) {

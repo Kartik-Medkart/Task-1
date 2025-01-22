@@ -3,6 +3,7 @@ import { getAllOrdersAPI, updateOrderStatusAPI } from "../../services/api";
 import React, { useEffect, useState } from "react";
 import { FiEdit2 } from "react-icons/fi";
 import { toast } from "react-toastify";
+import PaginationComponent from "../../components/PaginationComponent";
 
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString("en-US", {
@@ -129,7 +130,7 @@ const Orders = () => {
         Filter by Status:
       </label>
       <div className="flex gap-4">
-        {["all", "pending", "confirmed", "delivered"].map((status) => (
+        {["all", "pending", "confirmed","shipped","delivered", "cancelled"].map((status) => (
           <label key={status} className="inline-flex items-center">
             <input
               type="radio"
@@ -173,14 +174,14 @@ const Orders = () => {
               <span className="font-medium">Phone:</span> {order.user.phone}
             </p>
             <p>
-              <span className="font-medium">Address:</span> {order.user.address}
+              <span className="font-medium">Address:</span> {order.user.address} {order.user.city}, {order.user.state}
             </p>
           </div>
           <div>
             <h3 className="font-semibold mb-2">Order Information</h3>
             <p>
               <span className="font-medium">Total Amount:</span> $
-              {order.cart.amount.toFixed(2)}
+              {parseFloat(order.cart.amount).toFixed(2)}
             </p>
             <p>
               <span className="font-medium">Status:</span>
@@ -289,7 +290,7 @@ const Orders = () => {
                 className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 cursor-pointer"
                 onClick={() => setSelectedOrder(order)}
               >
-                ${order.cart.amount.toFixed(2)}
+                ${parseFloat(order.cart.amount).toFixed(2)}
               </td>
               <td
                 className="px-6 py-4 whitespace-nowrap cursor-pointer"
@@ -334,75 +335,75 @@ const Orders = () => {
     </div>
   );
 
-  const PaginationComponent = () => (
-    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
-      <div className="flex justify-between flex-1 sm:hidden">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Previous
-        </button>
-        <button
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
-          disabled={currentPage === totalPages}
-          className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-        </button>
-      </div>
-      <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm text-gray-700">
-            Showing <span className="font-medium">{indexOfFirstItem + 1}</span>{" "}
-            to{" "}
-            <span className="font-medium">
-              {Math.min(indexOfLastItem, filteredOrders.length)}
-            </span>{" "}
-            of <span className="font-medium">{filteredOrders.length}</span>{" "}
-            results
-          </p>
-        </div>
-        <div>
-          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            {[...Array(totalPages)].map((_, index) => (
-              <button
-                key={index + 1}
-                onClick={() => setCurrentPage(index + 1)}
-                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium
-                  ${
-                    currentPage === index + 1
-                      ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                      : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                  }`}
-              >
-                {index + 1}
-              </button>
-            ))}
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </nav>
-        </div>
-      </div>
-    </div>
-  );
+  // const PaginationComponent = () => (
+  //   <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+  //     <div className="flex justify-between flex-1 sm:hidden">
+  //       <button
+  //         onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+  //         disabled={currentPage === 1}
+  //         className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+  //       >
+  //         Previous
+  //       </button>
+  //       <button
+  //         onClick={() =>
+  //           setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+  //         }
+  //         disabled={currentPage === totalPages}
+  //         className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+  //       >
+  //         Next
+  //       </button>
+  //     </div>
+  //     <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+  //       <div>
+  //         <p className="text-sm text-gray-700">
+  //           Showing <span className="font-medium">{indexOfFirstItem + 1}</span>{" "}
+  //           to{" "}
+  //           <span className="font-medium">
+  //             {Math.min(indexOfLastItem, filteredOrders.length)}
+  //           </span>{" "}
+  //           of <span className="font-medium">{filteredOrders.length}</span>{" "}
+  //           results
+  //         </p>
+  //       </div>
+  //       <div>
+  //         <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+  //           <button
+  //             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+  //             disabled={currentPage === 1}
+  //             className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+  //           >
+  //             Previous
+  //           </button>
+  //           {[...Array(totalPages)].map((_, index) => (
+  //             <button
+  //               key={index + 1}
+  //               onClick={() => setCurrentPage(index + 1)}
+  //               className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium
+  //                 ${
+  //                   currentPage === index + 1
+  //                     ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+  //                     : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+  //                 }`}
+  //             >
+  //               {index + 1}
+  //             </button>
+  //           ))}
+  //           <button
+  //             onClick={() =>
+  //               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+  //             }
+  //             disabled={currentPage === totalPages}
+  //             className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+  //           >
+  //             Next
+  //           </button>
+  //         </nav>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -412,7 +413,13 @@ const Orders = () => {
         </h1>
         <FilterComponent />
         <OrderTableComponent />
-        <PaginationComponent />
+        <PaginationComponent
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredOrders.length}
+          itemsPerPage={itemsPerPage}
+          setCurrentPage={setCurrentPage}
+        />
         {selectedOrder && (
           <OrderDetailsModal
             order={selectedOrder}
