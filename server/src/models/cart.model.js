@@ -15,13 +15,9 @@ export default (sequelize, Sequelize) => {
         onDelete: 'CASCADE',
       },
       amount: {
-        type: Sequelize.DECIMAL,
+        type: Sequelize.DECIMAL(10, 2),
         allowNull: false,
         defaultValue: 0.00,
-        get() {
-          const value = this.getDataValue('amount');
-          return parseFloat(value).toFixed(2);
-        },
       },
     },
     {

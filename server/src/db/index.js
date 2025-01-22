@@ -64,6 +64,7 @@ models.CartItem.belongsTo(models.Cart, {
   foreignKey: "cart_id",
   onDelete: "CASCADE",
 });
+
 models.Cart.hasMany(models.CartItem, {
   foreignKey: "cart_id",
   as: "items",
