@@ -3,6 +3,9 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import {Op} from 'sequelize'
+import { sendMessage } from "../services/message.services.js";
+import { newOrder, receiveOrder } from "../utils/MessageBody.js";
+
 
 const { Order, Cart, CartItem, User } = models;
 
@@ -33,10 +36,24 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   // Update order_id in CartItem
   await CartItem.update({ order_id: order.order_id }, { where: { cart_id } });
+  let orderItems = await CartItem.findAll({ where: { cart_id } });
 
-  const orderItems = await CartItem.findAll({ where: { cart_id } });
+  orderItems = orderItems.map((item) => item.toJSON());
 
-  res
+  let orderItemsNames = orderItems.map((item) => item.name);
+  orderItemsNames = orderItemsNames.join(", ");
+  // Send order confirmation message
+  try{
+    // console.log(user.phone, `${user.firstName} ${user.lastName}`, order.order_id, new Date(order.shipping_date).toISOString())
+    // await sendMessage(newOrder(user.phone, `${user.firstName} ${user.lastName}`, order.order_id, new Date(order.shipping_date).toISOString()));
+    console.log(order.order_id, `${user.firstName} ${user.lastName}`, orderItemsNames, cart.amount)
+    await sendMessage(receiveOrder(order.order_id, `${user.firstName} ${user.lastName}`, orderItemsNames, cart.amount));
+  }
+  catch(err){
+    console.log(err);
+  }
+
+  return res
     .status(201)
     .json(
       new ApiResponse(201, { order, orderItems }, "Order created successfully")

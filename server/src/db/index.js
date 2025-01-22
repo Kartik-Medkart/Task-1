@@ -13,6 +13,7 @@ import ProductImages from "../models/productImages.model.js";
 import Tag from "../models/tag.model.js";
 import ProductTags from "../models/productTags.model.js";
 import Category from "../models/category.model.js";
+import OTP from "../models/otp.model.js";
 
 console.log(process.env.POSTGRES_USERNAME);
 const config = {
@@ -37,6 +38,7 @@ const models = {
   Tag: Tag(sequelize, Sequelize),
   ProductTags: ProductTags(sequelize, Sequelize),
   Category: Category(sequelize, Sequelize),
+  OTP: OTP(sequelize, Sequelize),
 };
 
 // Establish relationships (Associations)

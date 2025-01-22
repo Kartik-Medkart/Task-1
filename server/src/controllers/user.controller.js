@@ -75,9 +75,17 @@ export const createUser = asyncHandler(async (req, res) => {
     validations.email = "Email already exists";
   }
 
+  user = await User.findOne({ where: { phone } });
+
+  if (user) {
+    validations.phone = "Phone number already exists";
+  }
+
   if (Object.keys(validations).length !== 0) {
     return res.status(400).json(new ApiResponse(400, validations, "Provide Valid Data"));
   }
+
+  console.log(validations)
 
   const passwordHash = await bcrypt.hash(password, 10);
 

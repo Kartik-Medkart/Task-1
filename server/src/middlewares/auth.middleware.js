@@ -35,6 +35,18 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
   }
 });
 
+export const verifyUser = asyncHandler(async (req, res, next) => {
+  try {
+     if(!req.user.isVerified){
+        res.status(401).json(new ApiResponse(401, [], "Please Verify Your Phone Number"));
+     }
+     next();
+  } catch (error) {
+      console.log(error);
+      return res.status(500).json(new ApiResponse(500, [], "Internal Server Error"));
+  }
+});
+
 export const restrict = (roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {

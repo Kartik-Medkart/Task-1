@@ -57,6 +57,9 @@ export const updateUserAPI = (userData) =>
 export const logoutUserAPI = () =>
   api.post("/user/logout");
 
+export const sentOtpAPI = (phone) => api.post("/user/send-otp", { phone });
+export const verifyOtpAPI = (phone, otp) => api.post("/user/verify-otp", { phone, otp });
+
 
 export const searchUsersAPI = (search, selectedRole, page=1,limit=10) => api.get(`/user/search`, {
   params: { name: search, role: selectedRole, page, limit },

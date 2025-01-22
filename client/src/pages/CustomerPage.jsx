@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getOrdersAPI } from "../services/api";
+import { getOrdersAPI,sentOtpAPI } from "../services/api";
 import { ClipLoader } from "react-spinners";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -9,6 +9,9 @@ import { toast } from "react-toastify";
 import { FiTrash2 } from "react-icons/fi";
 import { FaMinus, FaPlus, FaUser, FaBox, FaTimes } from "react-icons/fa";
 
+import OtpVerificationModal from "../components/OtpVerificationModal";
+import { set } from "lodash";
+
 const CustomerPage = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [showModal, setShowModal] = useState(false);
@@ -16,6 +19,28 @@ const CustomerPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const {user, setLocalUser, logout} = useAuth();
+
+  const [isOtpOpen, setIsOtpOpen] = useState(false);
+
+  const [otpNumber, setOtpNumber] = useState('');
+
+  const openOtp = (phone) => {
+    setOtpNumber(phone);
+    setIsOtpOpen(true);
+    const sendOtp = async () => {
+      try {
+        await sentOtpAPI(phone);
+        toast.success('OTP sent successfully!');
+      } catch (error) {
+        toast.error('Failed to send OTP. Please try again.');
+      }
+    };
+    sendOtp();
+  };
+
+  const closeOtp = () => {
+    setIsOtpOpen(false);
+  };
 
   const initialValues = {
     firstName: user?.firstName || "",
@@ -157,7 +182,7 @@ const CustomerPage = () => {
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
-        {({ isSubmitting }) => (
+        {({ isSubmitting, values }) => (
           <Form className="space-y-4">
             <div>
               <label className="block text-gray-600 mb-2">First Name</label>
@@ -211,7 +236,22 @@ const CustomerPage = () => {
                 component="div"
                 className="text-red-500 text-sm"
               />
+              {user?.isVerified ? (
+                <p className="text-green-500 text-sm"> Verified </p>
+              ) : (
+                <div>
+                <button onClick={() => {
+                  openOtp(values.phone)
+                  }} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                  Verify Number
+                </button>
+                <OtpVerificationModal isOpen={isOtpOpen} onRequestClose={closeOtp} setIsVerified={() => {
+                  setLocalUser({...user, phone:otpNumber, isVerified: true});
+                }} phone={otpNumber}/>
+              </div>
+              )}
             </div>
+
             <div>
               <label className="block text-gray-600 mb-2">Address</label>
               <Field
@@ -251,13 +291,17 @@ const CustomerPage = () => {
                 className="text-red-500 text-sm"
               />
             </div>
-            <button
-              type="submit"
-              className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-700"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Submitting..." : "Submit"}
-            </button>
+            {user.isVerfiied ? (<button
+                type="submit"
+                className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Sign Up"}
+              </button>) : (
+                <span className="text-red-500 text-sm text-center mt-4 flex justify-center">
+                  Please verify your phone number to update details
+                </span>
+              )}
           </Form>
         )}
       </Formik>

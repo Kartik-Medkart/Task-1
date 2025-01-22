@@ -37,7 +37,7 @@ const SignUpForm = () => {
     try {
       const response = await registerUserAPI(values);
       console.log(response);
-      navigate("/login");
+      navigate("/verify-otp");
     } catch (error) {
       console.log(error);
       console.log(error.response.data);
