@@ -4,6 +4,7 @@ import { getProductsAPI } from "../services/api";
 import { useCart } from "../contexts/CartContext";
 import { useData } from "../contexts/DataContext";
 import ProductModal from "../components/ProductModal";
+import PaginationComponent from "../components/PaginationComponent"; 
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -284,6 +285,7 @@ const ProductsPage = () => {
                     src={
                       product.image?.url || "https://via.placeholder.com/300"
                     }
+                    loading="lazy"
                     className="aspect-square w-full rounded-lg bg-gray-200 object-cover group-hover:opacity-75 xl:aspect-[7/8]"
                     onClick={() => setSelectedProduct(product)}
                   />

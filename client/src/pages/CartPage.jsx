@@ -33,6 +33,7 @@ const CartPage = () => {
   };
 
   const handleDecrement = (id, prevQuantity) => {
+    if(prevQuantity === 1) return;
     updateQuantity(id, Math.max(prevQuantity - 1, 1));
   };
 
