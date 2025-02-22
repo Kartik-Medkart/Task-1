@@ -12,6 +12,23 @@ import { FaMinus, FaPlus, FaUser, FaBox, FaTimes } from "react-icons/fa";
 import OtpVerificationModal from "../components/OtpVerificationModal";
 import { set } from "lodash";
 
+const getOrderStatusClass = (order_status) => {
+  switch (order_status) {
+    case "pending":
+      return "bg-yellow-100 text-yellow-800";
+    case "confirmed":
+      return "bg-blue-100 text-blue-800";
+    case "shipped":
+      return "bg-purple-100 text-purple-800";
+    case "delivered":
+      return "bg-green-100 text-green-800";
+    case "cancelled":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
 const CustomerPage = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [showModal, setShowModal] = useState(false);
@@ -95,7 +112,7 @@ const CustomerPage = () => {
             <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
               <div>
                 <p className="text-gray-600">Order Status</p>
-                <p className="font-semibold capitalize">{order.order_status}</p>
+                <p className={`font-semibold capitalize ${getOrderStatusClass(order.order_status)}`}>{order.order_status}</p>
               </div>
               <div>
                 <p className="text-gray-600">Total Amount</p>
@@ -334,9 +351,7 @@ const CustomerPage = () => {
                   <p className="font-semibold">Rs. {parseFloat(order.cart.amount).toFixed(2)}</p>
                   <span
                     className={`inline-block px-3 py-1 rounded-full text-sm ${
-                      order.order_status === "confirmed"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
+                      getOrderStatusClass(order.order_status)
                     }`}
                   >
                     {order.order_status}

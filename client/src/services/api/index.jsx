@@ -89,7 +89,7 @@ export const updateCartAPI = (cart_item_id, quantity) => api.put(`/cart/update`,
 export const placeOrderAPI = (data) => api.post("/order");
 export const getOrdersAPI = () => api.get("/order");
 
-export const getAllOrdersAPI = (page = 1, limit = 10) => api.get(`/order/all?page=${page}&limit=${limit}`);
+export const getAllOrdersAPI = (status, page = 1, limit=10) => api.get(`/order/all?page=${page}&limit=${limit}&status=${status}`);
 export const updateOrderStatusAPI = (id, status) =>
   api.put(`/order/${id}`, { status });
 

@@ -187,79 +187,90 @@ export const cancelOrder = asyncHandler(async (req, res) => {
 
 // Get all orders
 export const getAllOrders = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
-  const offset = (page - 1) * limit;
-
-  let { count, rows: orders } = await Order.findAndCountAll({
-    limit: Number(limit),
-    offset: Number(offset),
-    include: [
-      {
-        model: Cart,
-        as: "cart",
-        attributes: ["cart_id", "amount"],
-        include: {
-          model: CartItem,
-          as: "items",
-          attributes: ["cart_item_id", "product_id", "quantity"],
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const { status } = req.query;
+    const offset = (page - 1) * limit;
+    const where = {};
+  
+    if (status && status !== "all") {
+      where.order_status = { [Op.eq]: status };
+    }
+  
+    let orders = await Order.findAll({
+      where,
+      order: [["shipping_date", "DESC"]],
+      limit: Number(limit),
+      offset: Number(offset),
+      include: [
+        {
+          model: Cart,
+          as: "cart",
+          attributes: ["cart_id", "amount"],
           include: {
-            model: Product,
-            as: "product",
-            attributes: ["product_name", "price"],
+            model: CartItem,
+            as: "items",
+            attributes: ["cart_item_id", "product_id", "quantity"],
             include: {
-              model: ProductImages,
-              as: "images",
-              attributes: ["url"],
+              model: Product,
+              as: "product",
+              attributes: ["product_name", "price"],
+              include: {
+                model: ProductImages,
+                as: "images",
+                attributes: ["url"],
+              },
             },
           },
         },
-      },
-      {
-        model: User,
-        as: "user",
-        attributes: ["username", "email", "phone", "address", "city", "state"],
-        where: {
-          role: {
-            [Op.ne]: req.user.role,
-          },
+        {
+          model: User,
+          as: "user",
+          attributes: ["username", "email", "phone", "address", "city", "state"],
         },
-      },
-    ],
-  });
-
-  orders = orders.map((order) => order.toJSON());
-  console.log(orders);
-  orders = orders.map((order) => {
-    order.cart.items = order.cart.items.map((item) => {
-      return {
-        cart_item_id: item.cart_item_id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        name: item.product.product_name,
-        price: item.product.price,
-        image: item.product.images[0].url,
-      };
+      ],
     });
-    return order;
-  });
 
-  console.log(orders)
+    const totalItems = await Order.count({ where });
+    
+    orders = orders.map((order) => order.toJSON());
+    // console.log(orders);
+    orders = orders.map((order) => {
+      order.cart.items = order.cart.items.map((item) => {
+        return {
+          cart_item_id: item.cart_item_id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          name: item.product.product_name,
+          price: item.product.price,
+          image: item.product.images[0].url,
+        };
+      });
+      return order;
+    });
+  
+    const totalPages = Math.ceil(totalItems / limit);
+    // console.log(count);
+  
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          orders,
+          totalItems,
+          totalPages,
+          currentPage: Number(page),
+        },
+        "Orders retrieved successfully"
+      )
+    );
 
-  const totalPages = Math.ceil(count / limit);
-  console.log(count);
-
-  res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        orders,
-        totalItems: count,
-        totalPages,
-        currentPage: Number(page),
-      },
-      "Orders retrieved successfully"
-    )
-  );
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(new ApiResponse(500, [], "Internal Server Error"));
+  }
 });
 
 // Update order

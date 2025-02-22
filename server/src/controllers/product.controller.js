@@ -10,6 +10,10 @@ import {
 
 const { Product, ProductImages, ProductTags, Tag, Category } = models;
 
+function isNumber(value) {
+  return /^-?\d*(\.\d+)?$/.test(value);
+}
+
 // Create a new product
 export const createProduct = asyncHandler(async (req, res) => {
   console.log("Create Product Controller");
