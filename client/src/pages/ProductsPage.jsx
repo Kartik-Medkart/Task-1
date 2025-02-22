@@ -4,6 +4,7 @@ import { getProductsAPI } from "../services/api";
 import { useCart } from "../contexts/CartContext";
 import { useData } from "../contexts/DataContext";
 import ProductModal from "../components/ProductModal";
+import PaginationComponent from "../components/PaginationComponent";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);

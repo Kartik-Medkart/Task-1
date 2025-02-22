@@ -11,7 +11,7 @@ export default (sequelize, Sequelize) => {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      ws_code: {
+      design_no: {
         type: Sequelize.INTEGER,
         unique: true,
         allowNull: false,

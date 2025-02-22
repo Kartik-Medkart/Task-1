@@ -66,8 +66,8 @@ export default function Navbar() {
             <div className="flex shrink-0 items-center">
               <img
                 alt="EOM"
-                src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=500"
-                className="h-8 w-auto"
+                src="https://res.cloudinary.com/hackathon-purpose/image/upload/c_fill,g_auto,h_250,w_970/b_rgb:000000,e_gradient_fade,y_-0.50/c_scale,co_rgb:ffffff,fl_relative,l_text:montserrat_25_style_light_align_center:Shop%20Now,w_0.5,y_0.18/v1740220094/bhatiya_unique_logo.jpg"
+                className="h-12 w-auto"
               />
             </div>
             <div className="hidden sm:ml-6 sm:block">
